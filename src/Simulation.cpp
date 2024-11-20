@@ -21,6 +21,10 @@ bool Simulation::addSettlement(Settlement settlement) {
     return true;
 }
 
+bool Simulation::addFacility(FacilityType facility){
+    
+}
+
 
 bool Simulation::isSettlementExists(const string &settlementName) {
     for (const Settlement &settlement : settlements) {
