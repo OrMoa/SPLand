@@ -18,14 +18,24 @@ bool Simulation::addSettlement(Settlement settlement) {
         return false;
     }
     settlements.push_back(settlement);
+    cout << "Settlement " << settlement.getName() << " added successfully." << endl;
     return true;
 }
 
 bool Simulation::addFacility(FacilityType facility){
-    
+    if (isFacilityExists(facility.getName())){
+        cout << "Facility already exists." << endl;
+        return false;
+    }
+    // the sentence is missing 
+
+    facilitiesOptions.push_back(facility);
+    cout << "Facility " << facility.getName() << " added successfully." << endl;
+    return true;
+
 }
 
-
+//we added
 bool Simulation::isSettlementExists(const string &settlementName) {
     for (const Settlement &settlement : settlements) {
         if (settlement.getName() == settlementName) {
@@ -34,3 +44,12 @@ bool Simulation::isSettlementExists(const string &settlementName) {
     }
     return false;
 }
+//we added
+bool Simulation::isFacilityExists(const string &facilityName) {
+    for (const FacilityType &facility : facilitiesOptions) {
+        if (facility.getName() == facilityName) {
+            return true; 
+        }
+    }
+    return false; 
+}  
