@@ -105,6 +105,59 @@ void Simulation::createPlan(const std::vector<std::string> &args) {
 }
 
 
+void Simulation::start() {
+    cout << "The simulation has started." << endl;
+    isRunning = true;
+
+    while (isRunning) {
+        // תצוגת קלט למשתמש
+        cout << "> ";
+        string input;
+        getline(cin, input); // קרא שורת פקודה מהמשתמש
+
+        // שימוש ב-Auxiliary::parseArguments לפירוק הקלט
+        vector<string> args = Auxiliary::parseArguments(input);
+
+        // טיפול בקלט ריק
+        if (args.empty()) {
+            continue;
+        }
+
+        // זיהוי הפקודה הראשית
+        const string& command = args[0];
+        try {
+            if (command == "step") {
+                if (args.size() != 2) throw runtime_error("Error: Invalid syntax for 'step'.");
+                int steps = stoi(args[1]);
+                simulateStep(steps);
+            } else if (command == "plan") {
+                createPlan(args);
+            } else if (command == "settlement") {
+                createSettlement(args);
+            } else if (command == "facility") {
+                createFacility(args);
+            } else if (command == "planStatus") {
+                if (args.size() != 2) throw runtime_error("Error: Invalid syntax for 'planStatus'.");
+                printPlanStatus(stoi(args[1]));
+            } else if (command == "changePolicy") {
+                if (args.size() != 3) throw runtime_error("Error: Invalid syntax for 'changePolicy'.");
+                changePlanPolicy(stoi(args[1]), args[2]);
+            } else if (command == "log") {
+                printActionsLog();
+            } else if (command == "close") {
+                closeSimulation();
+                isRunning = false; // סיום הלולאה
+            } else {
+                throw runtime_error("Error: Unknown command.");
+            }
+        } catch (const exception& e) {
+            cerr << e.what() << endl; // הצגת שגיאה למשתמש
+        }
+    }
+}
+
+
+
 /*
 bool Simulation::addSettlement(Settlement *settlement) {
     if (isSettlementExists(settlement->getName())) {
