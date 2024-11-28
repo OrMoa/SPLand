@@ -25,11 +25,12 @@ class Simulation {
         void step();
         void close();
         void open();
-        void AddSettlementAction (const vector<string> &args);
-        void AddFacilityAction (const vector<string> &args);
-        void AddPlanAction (const vector<string> &args);
+        
 
     private:
+        void createSettlement (const vector<string> &args);
+        void createFacility (const vector<string> &args);
+        void createPlan (const vector<string> &args);
         bool isRunning;
         int planCounter; //For assigning unique plan IDs
         vector<BaseAction*> actionsLog;
