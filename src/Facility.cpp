@@ -37,7 +37,7 @@ Facility::Facility(const string &name, const string &settlementName, const Facil
     : FacilityType(name, category, price, lifeQuality_score, economy_score, environment_score),
       settlementName(settlementName), status(FacilityStatus::UNDER_CONSTRUCTIONS), timeLeft(price) {}
 
-Facility::Facility(FacilityType &type, const string &settlementName)
+Facility::Facility(const FacilityType &type, const string &settlementName)
     : FacilityType(type), settlementName(settlementName), status(FacilityStatus::UNDER_CONSTRUCTIONS), timeLeft(type.getCost()) {}
 
 // Getters for Facility
@@ -50,17 +50,30 @@ const int Facility::getTimeLeft() const {
 }
 
 FacilityStatus Facility::step() {
-    // TODO: Reduce timeLeft by one and update the status if construction is complete
+    if (timeLeft > 0) {
+        --timeLeft;
+        if (timeLeft == 0) {
+            status = FacilityStatus::OPERATIONAL;
+        }
+    }
+    return status;
 }
 
 void Facility::setStatus(FacilityStatus status) {
-    // TODO: Set the status of the facility
+    this->status = status;
 }
 
 const FacilityStatus& Facility::getStatus() const {
-    // TODO: Return the status of the facility
+    return status;
 }
 
 const string Facility::toString() const {
-    // TODO: Return a string representation of the facility
+    string statusString;
+    if (status == FacilityStatus::UNDER_CONSTRUCTIONS) 
+          statusString = "UNDER_CONSTRUCTIONS";
+    else
+           statusString = "OPERATIONAL";
+
+    return "FacilityName: " + getName() + "\n" +
+           "FacilityStatus: " + statusString;
 }

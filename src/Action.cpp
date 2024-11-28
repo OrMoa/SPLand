@@ -1,22 +1,39 @@
-#include "Simulation.h"
 #include "Action.h"
-#include "Facility.h"
-#include "Settlement.h"
-#include "Plan.h"
-#include <iostream>
-#include <stdexcept>
-#include "Auxiliary.h"
 
 
-
-void Action::complete() {
-    status = ActionStatus::COMPLETED; // שימוש בשם המלא של ה-enum
+ActionStatus BaseAction::getStatus() const {
+    return status;
 }
 
-    // עדכון סטטוס ל-ERROR עם הודעת שגיאה
-void Action::error(const std::string& errorMessage)
-{
-        status = ERROR;
-        errorMsg = errorMessage;
-        std::cerr << "Error: " << errorMsg << std::endl; // הדפסת הודעת שגיאה למסך
-    }
+void BaseAction::complete() {
+    status = ActionStatus::COMPLETED;
+}
+
+void BaseAction::error(string errorMsg) {
+    status = ActionStatus::ERROR;
+    this->errorMsg = std::move(errorMsg); // שימוש ב-std::move לשיפור יעילות
+    std::cerr << "Error: " << this->errorMsg << std::endl;
+}
+
+const std::string& BaseAction::getErrorMsg() const {
+    return errorMsg;
+}
+
+SimulateStep::SimulateStep(const int numOfSteps) : numOfSteps(numOfSteps) {}
+
+void SimulateStep::act(Simulation& simulation) {
+    // עבור כל צעד
+    for (int stepLeft = 0; stepLeft < numOfSteps; ++stepLeft) {
+        for (Plan& plan : simulation.getPlans()) {
+            // שלב 1: בדיקת סטטוס התוכנית
+            if (plan.getStatus() == PlanStatus::AVALIABLE) {
+                // שלב 2: הוספת מתקנים חדשים לבנייה
+                int constructionLimit = plan.getSettlement().getConstructionLimit();
+                while (plan.getUnderConstruction().size() < constructionLimit) {
+                    const FacilityType& nextFacilityType = plan.getSelectionPolicy()->selectFacility(plan.getFacilityOptions());
+                    Facility* newFacility = new Facility(nextFacilityType, plan.getSettlement().getName());
+                    plan.addFacility(newFacility);
+                
+            }
+        
+        }
