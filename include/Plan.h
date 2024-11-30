@@ -29,6 +29,8 @@ class Plan {
         void addFacility(Facility* facility);
         const string toString() const;
         const PlanStatus getStatus() const;
+        void updateUnderConstruction();
+
 
     private:
         int plan_id;

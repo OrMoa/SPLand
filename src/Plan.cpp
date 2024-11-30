@@ -69,3 +69,52 @@ void Plan::printStatus() {
               << "Facilities Under Construction: " << underConstruction.size() << "\n"
               << "Facilities Completed: " << facilities.size() << "\n";
 }
+
+void Plan::step() {
+    // שלב 1: בדיקת סטטוס
+    if (status == PlanStatus::BUSY) {
+        // אם עסוק, נבצע רק עדכון מתקנים בבנייה
+        updateUnderConstruction();
+        return;
+    }
+
+    // שלב 2: הוספת מתקנים ל-`underConstruction`
+    int constructionLimit = settlement.getConstructionLimit();
+    while (underConstruction.size() < constructionLimit) {
+        const FacilityType* nextFacilityType = selectionPolicy->selectFacility(facilityOptions);
+
+        // אם אין מתקנים זמינים, עצור
+        if (nextFacilityType == nullptr) {
+            break;
+        }
+
+        // יצירת מתקן חדש והוספתו ל-`underConstruction`
+        Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
+        addFacility(newFacility); // שימוש במתודת העזר
+    }
+
+    // שלב 3: עדכון מתקנים בבנייה
+    updateUnderConstruction();
+}
+
+void Plan::updateUnderConstruction() {
+
+    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
+        Facility* facility = *it;
+        facility->decrementTimeLeft(); // הפחתת זמן הבנייה
+
+        if (facility->getTimeLeft() == 0) {
+            facility->setStatus(FacilityStatus::OPERATIONAL);
+            facilities.push_back(facility); // העברת המצביע לוקטור השני
+            it = underConstruction.erase(it); // מחיקת האיבר ועדכון האיטרטור***לבדוק
+        } else {
+            ++it; // התקדמות ידנית אם האיבר לא נמחק
+        }
+    }
+    if (underConstruction.empty()) {
+        status = PlanStatus::AVALIABLE; // אין מתקנים בבנייה
+    } else if (underConstruction.size() >= settlement.getConstructionLimit()) {
+        status = PlanStatus::BUSY; // הגעת למגבלת הבנייה
+    }
+}
+

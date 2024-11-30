@@ -48,6 +48,7 @@ class Facility: public FacilityType {
         void setStatus(FacilityStatus status);
         const FacilityStatus& getStatus() const;
         const string toString() const;
+        void decrementTimeLeft();
 
     private:
         const string settlementName;

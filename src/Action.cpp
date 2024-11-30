@@ -24,16 +24,10 @@ SimulateStep::SimulateStep(const int numOfSteps) : numOfSteps(numOfSteps) {}
 void SimulateStep::act(Simulation& simulation) {
     // עבור כל צעד
     for (int stepLeft = 0; stepLeft < numOfSteps; ++stepLeft) {
-        for (Plan& plan : simulation.getPlans()) {
-            // שלב 1: בדיקת סטטוס התוכנית
-            if (plan.getStatus() == PlanStatus::AVALIABLE) {
-                // שלב 2: הוספת מתקנים חדשים לבנייה
-                int constructionLimit = plan.getSettlement().getConstructionLimit();
-                while (plan.getUnderConstruction().size() < constructionLimit) {
-                    const FacilityType& nextFacilityType = plan.getSelectionPolicy()->selectFacility(plan.getFacilityOptions());
-                    Facility* newFacility = new Facility(nextFacilityType, plan.getSettlement().getName());
-                    plan.addFacility(newFacility);
-                
+        for (Plan& plan : simulation.getPlans()) {// להחליט האם מתאים בדרך זו
+                plan.step();      
             }
         
         }
+    }
+}
