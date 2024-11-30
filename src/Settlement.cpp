@@ -29,3 +29,15 @@ const string Settlement::toString() const {
     }
     return "Settlement " + name + typeString;
 }
+
+int Settlement::getConstructionLimit() const {
+    if (type == SettlementType::VILLAGE) {
+        return 1; 
+    } else if (type == SettlementType::CITY) {
+        return 2;
+    } else if (type == SettlementType::METROPOLIS) {
+        return 3;
+    } else {
+        return 0;
+    }
+}

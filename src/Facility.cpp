@@ -77,3 +77,9 @@ const string Facility::toString() const {
     return "FacilityName: " + getName() + "\n" +
            "FacilityStatus: " + statusString;
 }
+
+void Facility::decrementTimeLeft() {
+    if (timeLeft > 0) {
+        --timeLeft; 
+    }
+}
