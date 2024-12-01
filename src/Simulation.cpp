@@ -131,77 +131,74 @@ void Simulation::start() {
 void Simulation::processCommand(const vector<string>& args){    // כאן כתוב גוף הפונקציה
 
     const string& command = args[0];
+    BaseAction* action = nullptr; // מצביע כללי לפעולה
 
     //step:
     if (command == "step") {
-        if (args.size() != 2) {
-            cout << "Error: Invalid syntax for 'step'." << endl;
-            return;
-        }
 
-        int steps;
-        steps = stoi(args[1]); // המרת המחרוזת למספר
-
-        simulateStep(steps);
+        int numOfSteps;
+        numOfSteps = stoi(args[1]); // המרת המחרוזת למספר
+        action = new SimulateStep(numOfSteps);
 
     //plan:
     } else if (command == "plan") {
-        createPlan(args);
 
+        const string& settlementName = args[1];
+        const string& selectionPolicy = args[2];
+        action = new AddPlan(settlementName, selectionPolicy);
+
+    //settlement:
     } else if (command == "settlement") {
-        createSettlement(args);
 
+        const string& settlementName = args[1];
+        int settlementType;
+        settlementType = stoi(args[2]);
+        action = new AddSettlement(settlementName, static_cast<SettlementType>(settlementType));
+
+    //facility:
     } else if (command == "facility") {
-        createFacility(args);
+        const string& facilityName = args[1];
+        int category, price, lifeQualityScore, economyScore, environmentScore;
+        category = stoi(args[2]);
+        price = stoi(args[3]);
+        lifeQualityScore = stoi(args[4]);
+        economyScore = stoi(args[5]);
+        environmentScore = stoi(args[6]);
+        action = new AddFacility(facilityName,
+                                 static_cast<FacilityCategory>(category),
+                                 price,
+                                 lifeQualityScore,
+                                 economyScore,
+                                 environmentScore);
 
+
+    }else if (command == "backup") {
+        action = new BackupSimulation();
+    } 
+    else if (command == "restore") {
+        action = new RestoreSimulation();
+    
     } else if (command == "planStatus") {
-        if (args.size() != 2) {
-            cout << "Error: Invalid syntax for 'planStatus'. Expected: planStatus <plan_id>" << endl;
-            return;
-        }
-
         int planId;
-        try {
-            planId = stoi(args[1]); // המרת המחרוזת למספר
-        } catch (const invalid_argument&) {
-            cout << "Error: Invalid number format for 'planStatus'. Expected an integer." << endl;
-            return;
-        }
-
-        printPlanStatus(planId);
+        planId = stoi(args[1]); // המרת המחרוזת למספר
+        action = new PrintPlanStatus(planId);
 
     } else if (command == "changePolicy") {
-        if (args.size() != 3) {
-            cout << "Error: Invalid syntax for 'changePolicy'. Expected: changePolicy <plan_id> <policy>" << endl;
-            return;
-        }
 
         int planId;
-        try {
-            planId = stoi(args[1]); // המרת המחרוזת למספר
-        } catch (const invalid_argument&) {
-            cout << "Error: Invalid number format for 'changePolicy'. Expected an integer." << endl;
-            return;
-        }
+        planId = stoi(args[1]); // המרת המחרוזת למספר
+        const string& selectionPolicy = args[2];
+        action = new ChangePlanPolicy(planId, selectionPolicy);
 
-        string newPolicy = args[2];
-        changePlanPolicy(planId, newPolicy);
-
-    } else if (command == "log") {
-        printActionsLog();
-
-    } else if (command == "close") {
-        closeSimulation();
-        isRunning = false;
-
-    } else if (command == "help") {
-        printHelp();
-
-    } else {
-        cout << "Error: Unknown command. Type 'help' for a list of commands." << endl;
+    
+    }if (action != nullptr) {
+        action->act(*this);
+        actionsLog.push_back(action); // שמירת הפעולה בלוג
     }
+   
 }
 
+<<<<<<< HEAD
 int Simulation::getPlanCounter() const{
     return planCounter;
 }
@@ -267,6 +264,8 @@ bool Simulation::addFacility(FacilityType facility){
 }
 
 //we added
+=======
+>>>>>>> 81b77671aba7ef55e2b1c37f62ad60baea965329
 bool Simulation::isSettlementExists(const string &settlementName) {
     for (const Settlement *settlement : settlements) {
         if (settlement->getName() == settlementName) {
@@ -275,7 +274,7 @@ bool Simulation::isSettlementExists(const string &settlementName) {
     }
     return false;
 }
-//we added
+
 bool Simulation::isFacilityExists(const string &facilityName) {
     for (const FacilityType &facility : facilitiesOptions) {
         if (facility.getName() == facilityName) {
@@ -286,20 +285,3 @@ bool Simulation::isFacilityExists(const string &facilityName) {
 }  
 
 
-void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy)
-{
-    if (!isSettlementExists(settlement.getName())) {
-        cout << "Cannot create this plan- settlement does not exist" << endl;
-        return;
-    }
-     const std::string policyName = selectionPolicy->toString();
-    if (policyName != "NaiveSelection" && 
-        policyName != "BalancedSelection" && 
-        policyName != "EconomySelection" && 
-        policyName != "SustainabilitySelection") {
-        std::cout << "Cannot create this plan- invalid selection policy" << std::endl;
-        return;
-    }
-    Plan newPlan(planCounter++, settlement, selectionPolicy, facilitiesOptions);
-    */
-}
