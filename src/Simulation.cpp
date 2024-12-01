@@ -58,7 +58,7 @@ void Simulation::createSettlement(const vector<string> &args) {
     settlements.push_back(newSettlement);
 }
 
-void Simulation::createFacility(const vector<string> &args) {
+void Simulation::createFacility(const std::vector<std::string> &args) {
     if (args.size() != 7) {
         throw std::runtime_error("Error: Invalid facility line format.");
     }
@@ -79,25 +79,22 @@ void Simulation::createFacility(const vector<string> &args) {
 }
 
 void Simulation::createPlan(const vector<string> &args) {
-    if (args.size() != 3) {
-        throw std::runtime_error("Error: Invalid plan line format.");
-    }
 
-    const std::string &settlementName = args[1];
-    const std::string &policy = args[2];
+    const string &settlementName = args[1];
+    const string &policy = args[2];
 
     if (!isSettlementExists(settlementName)) {
         throw std::runtime_error("Error: Settlement does not exist for plan.");
     }
     SelectionPolicy *selectionPolicy = nullptr;
     if (policy == "nve") {
-        selectionPolicy = new NaiveSelectionPolicy(); // מדיניות בחירה נאיבית
+        selectionPolicy = new NaiveSelection(); // מדיניות בחירה נאיבית
     } else if (policy == "bal") {
-        selectionPolicy = new BalancedSelectionPolicy(); // מדיניות מאוזנת
+        selectionPolicy = new BalancedSelection(); // מדיניות מאוזנת
     } else if (policy == "eco") {
-        selectionPolicy = new EconomySelectionPolicy(); // מדיניות כלכלית
+        selectionPolicy = new EconomySelection(); // מדיניות כלכלית
     } else if (policy == "env") {
-        selectionPolicy = new SustainabilitySelectionPolicy(); // מדיניות סביבתית
+        selectionPolicy = new SustainabilitySelection(); // מדיניות סביבתית
     }
 
     Settlement &settlement = getSettlement(settlementName);
@@ -216,6 +213,9 @@ bool Simulation::isFacilityExists(const string &facilityName) {
     return false; 
 }  
 
+<<<<<<< HEAD
+
+=======
 int Simulation::getPlanCounter() const{
     return planCounter;
 }
@@ -226,3 +226,4 @@ void Simulation::close(){
 
     isRunning = false;
 }
+>>>>>>> f4b9d9f7fb61509794aae48d78d5840b0fd2e5bd

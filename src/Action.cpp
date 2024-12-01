@@ -1,4 +1,5 @@
 #include "Action.h"
+#include "SelectionPolicy.h"
 
 
 ActionStatus BaseAction::getStatus() const {
@@ -19,6 +20,7 @@ const std::string& BaseAction::getErrorMsg() const {
     return errorMsg;
 }
 
+//simulationStep:
 SimulateStep::SimulateStep(const int numOfSteps) : numOfSteps(numOfSteps) {}
 
 void SimulateStep::act(Simulation& simulation) {
@@ -31,8 +33,9 @@ void SimulateStep::act(Simulation& simulation) {
         }
     }
 
-//AddSettlement
+// חסר to string ו clone
 
+//AddSettlement:
 AddSettlement::AddSettlement(const string &settlementName, SettlementType settlementType)
     : settlementName(settlementName), settlementType(settlementType) {}
 
@@ -110,7 +113,6 @@ AddFacility::AddFacility(const string &facilityName, const FacilityCategory faci
       lifeQualityScore(lifeQualityScore), 
       economyScore(economyScore), 
       environmentScore(environmentScore) {}
-
 
 void AddFacility::act(Simulation &simulation) {
     if (simulation.isFacilityExists(facilityName)) {
@@ -192,4 +194,37 @@ void RestoreSimulation::act(Simulation &simulation){
         simulation = *backup;
         complete();
     }         
+}
+
+//changePlanPolicy:
+ChangePlanPolicy::ChangePlanPolicy(int planId, const string& newPolicy)
+    : planId(planId), newPolicy(newPolicy) {}
+
+void ChangePlanPolicy::act(Simulation &simulation) {
+    //  בדיקה אם התוכנית קיימת או חוקית
+    if (planId >= simulation.getPlanCounter()) {
+        error("Error: Plan doesn't exist.");
+        return;
+    }
+
+    Plan& plan = simulation.getPlan(planId);
+
+    // יצירת מדיניות חדשה
+    SelectionPolicy* policy = nullptr;
+    if (newPolicy == "nve") {
+        policy = new NaiveSelection();
+    } else if (newPolicy == "bal") {
+        policy = new BalancedSelection(plan.getlifeQualityScore(), plan.getEconomyScore(), plan.getEnvironmentScore());
+    } else if (newPolicy == "eco") {
+        policy = new EconomySelection();
+    } else if (newPolicy == "env") {
+        policy = new SustainabilitySelection();
+    } else {
+        cout << "Error: Invalid selection policy: " << newPolicy << endl;
+        return;
+    }
+
+    // החלפת המדיניות בתוכנית
+    plan.setSelectionPolicy(policy);
+    complete();
 }
