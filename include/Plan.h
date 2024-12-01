@@ -33,6 +33,7 @@ class Plan {
         const Settlement getSettlement();
         const vector<Facility*>& getUnderConstruction() const;
         const SelectionPolicy* getSelectionPolicy() const;
+        const int getPlanId() const;
 
 
     private:

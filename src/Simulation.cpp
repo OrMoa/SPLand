@@ -219,3 +219,10 @@ bool Simulation::isFacilityExists(const string &facilityName) {
 int Simulation::getPlanCounter() const{
     return planCounter;
 }
+
+//הוספת מחיקת משאבים
+void Simulation::close(){
+    //מחיקת משאבים??
+
+    isRunning = false;
+}
