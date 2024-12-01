@@ -32,7 +32,7 @@ const Settlement Plan::getSettlement(){
     return settlement;
 }
 
-const std::vector<Facility*>& Plan::getUnderConstruction() const {
+const vector<Facility*>& Plan::getUnderConstruction() const {
     return underConstruction;
 }
 
@@ -43,6 +43,11 @@ const int Plan::getEnvironmentScore() const {
 const SelectionPolicy* Plan::getSelectionPolicy() const {
     return selectionPolicy;
 }
+
+const int Plan::getPlanId() const{
+    return plan_id;
+}
+
 
 //לבדוק 
 void Plan::setSelectionPolicy(SelectionPolicy *newPolicy) {
@@ -63,14 +68,18 @@ void Plan::addFacility(Facility* facility){
     } 
 }
 
+<<<<<<< HEAD
+=======
+//לממש
+>>>>>>> f4b9d9f7fb61509794aae48d78d5840b0fd2e5bd
 const string Plan::toString() const {
-    //לממש
     }
 
 const PlanStatus Plan::getStatus() const{
     return status;
 }
 
+// נדרש? קיים כפל קוד?
 void Plan::printStatus() {
     std::cout << "PlanID: " << plan_id << "\n"
               << "SettlementName: " << settlement.getName() << "\n"
