@@ -202,6 +202,11 @@ void Simulation::processCommand(const vector<string>& args){    // כאן כתו
     }
 }
 
+int Simulation::getPlanCounter() const{
+    return planCounter;
+}
+
+
 void Simulation::simulateStep(int numOfSteps) {
     for (int step = 0; step < numOfSteps; ++step) {
         // מעבר על כל ה plans בסימולציה
