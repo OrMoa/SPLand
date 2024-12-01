@@ -15,6 +15,7 @@ Plan::~Plan() {
         delete facility;
     }
 }
+
 const vector<Facility*>& Plan::getFacilities() const {
     return facilities;
 }
@@ -61,7 +62,6 @@ void Plan::addFacility(Facility* facility){
         environment_score += facility->getEnvironmentScore();
     } 
 }
-
 
 const string Plan::toString() const {
     //לממש
@@ -130,3 +130,13 @@ void Plan::updateUnderConstruction() {
     }
 }
 
+void Plan::setSelectionPolicy(SelectionPolicy* newPolicy) {
+    if (selectionPolicy != nullptr) {
+        delete selectionPolicy;
+    }
+    selectionPolicy = newPolicy;
+
+    if (auto* naivePolicy = dynamic_cast<NaiveSelection*>(selectionPolicy)) {
+        naivePolicy->reset();
+    }
+}

@@ -15,9 +15,7 @@ SelectionPolicy::~SelectionPolicy() = default;
 NaiveSelection::NaiveSelection() : lastSelectedIndex(-1) {}
 
 const FacilityType& NaiveSelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
-    if (facilitiesOptions.empty()) {
-        //למלא("Error: No facilities available for selection.");
-    }
+    
     lastSelectedIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
     return facilitiesOptions[lastSelectedIndex];
 }
@@ -26,6 +24,14 @@ const string NaiveSelection::toString() const {
     return "Naive Selection";
 }
 
+NaiveSelection* NaiveSelection::clone() const {
+    return new NaiveSelection(*this); // יצירת עותק באמצעות בנאי ההעתקה
+}
+ 
+void NaiveSelection::reset() {
+    lastSelectedIndex = -1;
+}
+ 
  //BalancedSelection Implementation
 BalancedSelection::BalancedSelection(int lifeQuality, int economy, int environment)
     : LifeQualityScore(lifeQuality), EconomyScore(economy), EnvironmentScore(environment) {}
@@ -57,6 +63,10 @@ const FacilityType& BalancedSelection::selectFacility(const std::vector<Facility
 
 const string BalancedSelection::toString() const {
     return "Balanced Selection";
+}
+
+int BalancedSelection::getLifeQualityScore() const {
+    return LifeQualityScore;
 }
 
 // EconomySelection Implementation
