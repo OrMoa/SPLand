@@ -26,28 +26,38 @@ const string NaiveSelection::toString() const {
     return "Naive Selection";
 }
 
-/* BalancedSelection Implementation
+ //BalancedSelection Implementation
 BalancedSelection::BalancedSelection(int lifeQuality, int economy, int environment)
     : LifeQualityScore(lifeQuality), EconomyScore(economy), EnvironmentScore(environment) {}
 
 const FacilityType& BalancedSelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
-    if (facilitiesOptions.empty()) {
-        //למלא("Error: No facilities available for selection.");
+ const FacilityType* bestFacility = nullptr;
+    int minDifference = INT_MAX;
+
+    for (const FacilityType& facility : facilitiesOptions) {
+        int diff = std::abs((LifeQualityScore + facility.getLifeQualityScore()) - 
+                            (EconomyScore + facility.getEconomyScore())) +
+                   std::abs((LifeQualityScore + facility.getLifeQualityScore()) - 
+                            (EnvironmentScore + facility.getEnvironmentScore())) +
+                   std::abs((EconomyScore + facility.getEconomyScore()) - 
+                            (EnvironmentScore + facility.getEnvironmentScore()));
+
+        if (diff < minDifference) {
+            minDifference = diff;
+            bestFacility = &facility;
+        }
     }
 
-    auto minDiffFacility = std::min_element(facilitiesOptions.begin(), facilitiesOptions.end(),
-        [this](const FacilityType& a, const FacilityType& b) {
-            int diffA = std::abs((LifeQualityScore + a.lifeQualityImpact) - (EconomyScore + a.economyImpact) - (EnvironmentScore + a.environmentImpact));
-            int diffB = std::abs((LifeQualityScore + b.lifeQualityImpact) - (EconomyScore + b.economyImpact) - (EnvironmentScore + b.environmentImpact));
-            return diffA < diffB;
-        });
+    LifeQualityScore += bestFacility->getLifeQualityScore();
+    EconomyScore += bestFacility->getEconomyScore();
+    EnvironmentScore += bestFacility->getEnvironmentScore();
 
-    return *minDiffFacility;
+    return *bestFacility;
 }
 
-std::string BalancedSelection::toString() const {
+const string BalancedSelection::toString() const {
     return "Balanced Selection";
-}*/
+}
 
 // EconomySelection Implementation
 EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}

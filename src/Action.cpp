@@ -103,12 +103,7 @@ const string PrintActionsLog::toString() const {
 
 //addFacility
 
-AddFacility::AddFacility(const string &facilityName, 
-                         const FacilityCategory facilityCategory, 
-                         const int price, 
-                         const int lifeQualityScore, 
-                         const int economyScore, 
-                         const int environmentScore)
+AddFacility::AddFacility(const string &facilityName, const FacilityCategory facilityCategory, const int price, const int lifeQualityScore, const int economyScore, const int environmentScore)
     : facilityName(facilityName), 
       facilityCategory(facilityCategory), 
       price(price), 
@@ -179,3 +174,14 @@ void BackupSimulation::act(Simulation &simulation) {
     complete();
 }
 
+RestoreSimulation::RestoreSimulation(){};
+
+void RestoreSimulation::act(Simulation &simulation){
+   if (backup == nullptr){
+        error("No backup available");
+   }
+   else{
+        simulation = *backup;
+        complete();
+    }         
+}

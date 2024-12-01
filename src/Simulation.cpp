@@ -58,7 +58,7 @@ void Simulation::createSettlement(const vector<string> &args) {
     settlements.push_back(newSettlement);
 }
 
-void Simulation::createFacility(const std::vector<std::string> &args) {
+void Simulation::createFacility(const vector<string> &args) {
     if (args.size() != 7) {
         throw std::runtime_error("Error: Invalid facility line format.");
     }
@@ -78,7 +78,7 @@ void Simulation::createFacility(const std::vector<std::string> &args) {
     facilitiesOptions.push_back(newFacility);
 }
 
-void Simulation::createPlan(const std::vector<std::string> &args) {
+void Simulation::createPlan(const vector<string> &args) {
     if (args.size() != 3) {
         throw std::runtime_error("Error: Invalid plan line format.");
     }
@@ -198,74 +198,6 @@ void Simulation::processCommand(const vector<string>& args){    // כאן כתו
    
 }
 
-<<<<<<< HEAD
-int Simulation::getPlanCounter() const{
-    return planCounter;
-}
-
-
-void Simulation::simulateStep(int numOfSteps) {
-    for (int step = 0; step < numOfSteps; ++step) {
-        // מעבר על כל ה plans בסימולציה
-        for (Plan& plan : plans) {
-            // שלב 1: בדיקת סטטוס התוכנית
-            if (plan.getStatus() == PlanStatus::AVALIABLE) {
-                // הוספת מתקנים לבנייה עד למגבלת היישוב
-                int constructionLimit = plan.getSettlement().getConstructionLimit();
-                while (plan.getUnderConstruction().size() < constructionLimit) {
-                    // בחירת המתקן הבא לבנייה
-                    const FacilityType& nextFacilityType = plan.getSelectionPolicy()->selectFacility(plan.getFacilityOptions());
-                    Facility* newFacility = new Facility(nextFacilityType, plan.getSettlement().getName());
-
-                    // הוספת המתקן לבנייה
-                    plan.addFacility(newFacility);
-                }
-            }
-
-            // שלב 2: עדכון מתקנים בבנייה
-            plan.updateUnderConstruction();
-
-            // שלב 3: עדכון סטטוס התוכנית
-            int constructionLimit = plan.getSettlement().getConstructionLimit();
-            if (plan.getUnderConstruction().size() >= constructionLimit) {
-                plan.setStatus(PlanStatus::BUSY);
-            } else {
-                plan.setStatus(PlanStatus::AVAILABLE);
-            }
-        }
-    }
-
-    cout << "Simulation steps completed." << endl;
-}
-
-
-/*
-bool Simulation::addSettlement(Settlement *settlement) {
-    if (isSettlementExists(settlement->getName())) {
-        cout << "Settlement already exists." << endl;
-        return false;
-    }
-    settlements.push_back(settlement);
-    cout << "Settlement " << settlement->getName() << " added successfully." << endl;
-    return true;
-}
-
-bool Simulation::addFacility(FacilityType facility){
-    if (isFacilityExists(facility.getName())){
-        cout << "Facility already exists." << endl;
-        return false;
-    }
-    // the sentence is missing 
-
-    facilitiesOptions.push_back(facility);
-    cout << "Facility " << facility.getName() << " added successfully." << endl;
-    return true;
-
-}
-
-//we added
-=======
->>>>>>> 81b77671aba7ef55e2b1c37f62ad60baea965329
 bool Simulation::isSettlementExists(const string &settlementName) {
     for (const Settlement *settlement : settlements) {
         if (settlement->getName() == settlementName) {
@@ -284,4 +216,6 @@ bool Simulation::isFacilityExists(const string &facilityName) {
     return false; 
 }  
 
-
+int Simulation::getPlanCounter() const{
+    return planCounter;
+}
