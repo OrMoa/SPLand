@@ -30,6 +30,9 @@ class Plan {
         const string toString() const;
         const PlanStatus getStatus() const;
         void updateUnderConstruction();
+        const Settlement getSettlement();
+        const vector<Facility*>& getUnderConstruction() const;
+        const SelectionPolicy* getSelectionPolicy() const;
 
 
     private:

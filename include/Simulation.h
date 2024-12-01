@@ -25,6 +25,8 @@ class Simulation {
         void step();
         void close();
         void open();
+        void processCommand(const vector<string>& args);
+        void simulateStep(int numOfSteps);
         
 
     private:
