@@ -104,6 +104,138 @@ void Simulation::createPlan(const std::vector<std::string> &args) {
     plans.push_back(Plan(settlement, selectionPolicy));
 }
 
+void Simulation::start() {
+    cout << "The simulation has started." << endl;
+    isRunning = true;
+
+    while (isRunning) {
+        // תצוגת קלט למשתמש
+        cout << "> ";
+        string input;
+        getline(cin, input); // קרא שורת פקודה מהמשתמש
+
+        // שימוש ב-Auxiliary::parseArguments לפירוק הקלט
+        vector<string> args = Auxiliary::parseArguments(input);
+
+        // טיפול בקלט ריק
+        if (args.empty()) {
+            continue;
+        }
+
+        // זיהוי הפקודה הראשית
+        
+        processCommand(args);
+    }
+}
+
+void Simulation::processCommand(const vector<string>& args){    // כאן כתוב גוף הפונקציה
+
+    const string& command = args[0];
+
+    //step:
+    if (command == "step") {
+        if (args.size() != 2) {
+            cout << "Error: Invalid syntax for 'step'." << endl;
+            return;
+        }
+
+        int steps;
+        steps = stoi(args[1]); // המרת המחרוזת למספר
+
+        simulateStep(steps);
+
+    //plan:
+    } else if (command == "plan") {
+        createPlan(args);
+
+    } else if (command == "settlement") {
+        createSettlement(args);
+
+    } else if (command == "facility") {
+        createFacility(args);
+
+    } else if (command == "planStatus") {
+        if (args.size() != 2) {
+            cout << "Error: Invalid syntax for 'planStatus'. Expected: planStatus <plan_id>" << endl;
+            return;
+        }
+
+        int planId;
+        try {
+            planId = stoi(args[1]); // המרת המחרוזת למספר
+        } catch (const invalid_argument&) {
+            cout << "Error: Invalid number format for 'planStatus'. Expected an integer." << endl;
+            return;
+        }
+
+        printPlanStatus(planId);
+
+    } else if (command == "changePolicy") {
+        if (args.size() != 3) {
+            cout << "Error: Invalid syntax for 'changePolicy'. Expected: changePolicy <plan_id> <policy>" << endl;
+            return;
+        }
+
+        int planId;
+        try {
+            planId = stoi(args[1]); // המרת המחרוזת למספר
+        } catch (const invalid_argument&) {
+            cout << "Error: Invalid number format for 'changePolicy'. Expected an integer." << endl;
+            return;
+        }
+
+        string newPolicy = args[2];
+        changePlanPolicy(planId, newPolicy);
+
+    } else if (command == "log") {
+        printActionsLog();
+
+    } else if (command == "close") {
+        closeSimulation();
+        isRunning = false;
+
+    } else if (command == "help") {
+        printHelp();
+
+    } else {
+        cout << "Error: Unknown command. Type 'help' for a list of commands." << endl;
+    }
+}
+
+void Simulation::simulateStep(int numOfSteps) {
+    for (int step = 0; step < numOfSteps; ++step) {
+        // מעבר על כל ה plans בסימולציה
+        for (Plan& plan : plans) {
+            // שלב 1: בדיקת סטטוס התוכנית
+            if (plan.getStatus() == PlanStatus::AVALIABLE) {
+                // הוספת מתקנים לבנייה עד למגבלת היישוב
+                int constructionLimit = plan.getSettlement().getConstructionLimit();
+                while (plan.getUnderConstruction().size() < constructionLimit) {
+                    // בחירת המתקן הבא לבנייה
+                    const FacilityType& nextFacilityType = plan.getSelectionPolicy()->selectFacility(plan.getFacilityOptions());
+                    Facility* newFacility = new Facility(nextFacilityType, plan.getSettlement().getName());
+
+                    // הוספת המתקן לבנייה
+                    plan.addFacility(newFacility);
+                }
+            }
+
+            // שלב 2: עדכון מתקנים בבנייה
+            plan.updateUnderConstruction();
+
+            // שלב 3: עדכון סטטוס התוכנית
+            int constructionLimit = plan.getSettlement().getConstructionLimit();
+            if (plan.getUnderConstruction().size() >= constructionLimit) {
+                plan.setStatus(PlanStatus::BUSY);
+            } else {
+                plan.setStatus(PlanStatus::AVAILABLE);
+            }
+        }
+    }
+
+    cout << "Simulation steps completed." << endl;
+}
+
 
 /*
 bool Simulation::addSettlement(Settlement *settlement) {

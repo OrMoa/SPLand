@@ -27,8 +27,20 @@ const int Plan::getEconomyScore() const {
     return economy_score;
 }
 
+const Settlement Plan::getSettlement(){
+    return settlement;
+}
+
+const std::vector<Facility*>& Plan::getUnderConstruction() const {
+    return underConstruction;
+}
+
 const int Plan::getEnvironmentScore() const {
     return environment_score;
+}
+
+const SelectionPolicy* Plan::getSelectionPolicy() const {
+    return selectionPolicy;
 }
 
 //לבדוק 
