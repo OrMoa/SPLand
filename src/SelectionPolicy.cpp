@@ -15,9 +15,6 @@ SelectionPolicy::~SelectionPolicy() = default;
 NaiveSelection::NaiveSelection() : lastSelectedIndex(-1) {}
 
 const FacilityType& NaiveSelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
-    if (facilitiesOptions.empty()) {
-        //למלא("Error: No facilities available for selection.");
-    }
     lastSelectedIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
     return facilitiesOptions[lastSelectedIndex];
 }

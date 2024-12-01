@@ -152,11 +152,19 @@ void PrintPlanStatus::act(Simulation &simulation) {
 
 Close::Close() {}
 
+//להוסיף מחיקה של משתנה גלובלי backup
 void Close::act(Simulation &simulation) {
-    for (const Plan &plan : simulation.getPlans()) {
-        cout << plan.toString() << endl; // שימוש ב-toString של Plan
+    // הדפסת פרטי כל התוכניות
+    const std::vector<Plan>& plans = simulation.getPlans(); // assuming getPlans() exists
+    for (const Plan& plan : plans) {
+        std::cout << "PlanID: " << plan.getPlanId() << std::endl;
+        std::cout << "SettlementName: " << plan.getSettlement().getName() << std::endl;
+        std::cout << "LifeQualityScore: " << plan.getlifeQualityScore() << std::endl;
+        std::cout << "EconomyScore: " << plan.getEconomyScore() << std::endl;
+        std::cout << "EnvironmentScore: " << plan.getEnvironmentScore() << std::endl;
     }
 
+    simulation.close();
 }
 
 //BackupSimulation
