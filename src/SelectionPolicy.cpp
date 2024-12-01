@@ -15,10 +15,6 @@ SelectionPolicy::~SelectionPolicy() = default;
 NaiveSelection::NaiveSelection() : lastSelectedIndex(-1) {}
 
 const FacilityType& NaiveSelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
-<<<<<<< HEAD
-    
-=======
->>>>>>> f4b9d9f7fb61509794aae48d78d5840b0fd2e5bd
     lastSelectedIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
     return facilitiesOptions[lastSelectedIndex];
 }

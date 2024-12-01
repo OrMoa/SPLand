@@ -68,10 +68,7 @@ void Plan::addFacility(Facility* facility){
     } 
 }
 
-<<<<<<< HEAD
-=======
 //לממש
->>>>>>> f4b9d9f7fb61509794aae48d78d5840b0fd2e5bd
 const string Plan::toString() const {
     }
 
