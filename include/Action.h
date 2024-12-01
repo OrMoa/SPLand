@@ -4,6 +4,7 @@
 #include "Simulation.h"
 enum class SettlementType;
 enum class FacilityCategory;
+using namespace std;
 
 enum class ActionStatus{
     COMPLETED, ERROR
@@ -139,3 +140,4 @@ class RestoreSimulation : public BaseAction {
         const string toString() const override;
     private:
 };
+

@@ -26,7 +26,8 @@ class Simulation {
         void close();
         void open();
         void processCommand(const vector<string>& args);
-        void simulateStep(int numOfSteps);
+        //void simulateStep(int numOfSteps);
+        int getPlanCounter() const;
         
 
     private:
@@ -41,3 +42,5 @@ class Simulation {
         vector<FacilityType> facilitiesOptions;
 
 };
+
+extern Simulation* backup;

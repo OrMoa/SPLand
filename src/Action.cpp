@@ -83,5 +83,99 @@ void AddPlan::act(Simulation &simulation) {
     simulation.addPlan(settlement, policy);
     complete();
 
-    
 }
+
+//PrintActionsLog
+
+PrintActionsLog::PrintActionsLog() {}
+
+void PrintActionsLog::act(Simulation &simulation) {
+    const vector<BaseAction*>& actionsLog = simulation.getActionsLog(); // גישה ללוג
+    for (const BaseAction* action : actionsLog) {
+        cout << action->toString() << endl; // הדפסה של כל פעולה
+    }
+    complete(); // סימון הפעולה כ-COMPLETED
+}
+
+const string PrintActionsLog::toString() const {
+    return "log COMPLETED";
+}
+
+//addFacility
+
+AddFacility::AddFacility(const string &facilityName, 
+                         const FacilityCategory facilityCategory, 
+                         const int price, 
+                         const int lifeQualityScore, 
+                         const int economyScore, 
+                         const int environmentScore)
+    : facilityName(facilityName), 
+      facilityCategory(facilityCategory), 
+      price(price), 
+      lifeQualityScore(lifeQualityScore), 
+      economyScore(economyScore), 
+      environmentScore(environmentScore) {}
+
+
+void AddFacility::act(Simulation &simulation) {
+    if (simulation.isFacilityExists(facilityName)) {
+        error("Facility already exists: " + facilityName);
+        return;
+    }
+
+    FacilityType newFacility(facilityName, facilityCategory, price, lifeQualityScore, economyScore, environmentScore);
+    simulation.addFacility(newFacility);
+
+    complete();
+}
+
+const string AddFacility::toString() const {
+    return "AddFacility " + facilityName + " " + 
+           to_string(static_cast<int>(facilityCategory)) + " " +
+           to_string(price) + " " + 
+           to_string(lifeQualityScore) + " " + 
+           to_string(economyScore) + " " + 
+           to_string(environmentScore) + 
+           " " + (getStatus() == ActionStatus::COMPLETED ? "COMPLETED" : "ERROR (" + getErrorMsg() + ")");
+}
+
+//PrintPlanStatus
+
+PrintPlanStatus::PrintPlanStatus(int planId) : planId(planId) {}
+
+void PrintPlanStatus::act(Simulation &simulation) {
+    if (planId > simulation.getPlanCounter()-1)
+   {
+        error("Plan doesn't exists");
+   }
+   else{
+        Plan &plan = simulation.getPlan(planId);
+        cout << plan.toString() << endl;
+        complete();
+   }
+}
+
+Close::Close() {}
+
+void Close::act(Simulation &simulation) {
+    for (const Plan &plan : simulation.getPlans()) {
+        cout << plan.toString() << endl; // שימוש ב-toString של Plan
+    }
+
+}
+
+//BackupSimulation
+
+BackupSimulation::BackupSimulation() {}
+
+void BackupSimulation::act(Simulation &simulation) {
+    if (backup != nullptr) {
+        delete backup;
+        backup = nullptr;
+    }
+
+    backup = new Simulation(simulation);
+
+    complete();
+}
+
