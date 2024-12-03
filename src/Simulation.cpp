@@ -13,9 +13,6 @@ using namespace std;
 
 Simulation::Simulation(const string &configFilePath) : isRunning(false), planCounter(0){
     std::ifstream file(configFilePath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Error: Could not open config file.");
-    }
     string line;
     while (std::getline(file, line)) {
         vector<string> arguments = Auxiliary::parseArguments(line);
@@ -33,7 +30,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
         } else if (type == "plan") {
             createPlan(arguments);
         } else {
-            throw std::runtime_error("Error: Unknown line type in config file.");
+            continue;
         }
     }
 
@@ -41,38 +38,53 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
     
 }
 
-void Simulation::createSettlement(const vector<string> &args) {
-    if (args.size() != 3) {
-        throw std::runtime_error("Error: Invalid settlement line format.");
+Simulation::Simulation(const Simulation& other) 
+    : isRunning(other.isRunning), 
+      planCounter(other.planCounter), 
+      facilitiesOptions(other.facilitiesOptions) 
+{
+    for (Settlement* settlement : other.settlements) {
+        settlements.push_back(new Settlement(*settlement));
     }
 
-    const std::string &name = args[1];
+    for (const Plan& plan : other.plans) {
+        plans.push_back(plan); 
+    }
+
+    for (BaseAction* action : other.actionsLog) {
+        actionsLog.push_back(action->clone()); 
+    }
+}
+
+Simulation::~Simulation() {
+    clear();
+}
+
+void Simulation::createSettlement(const vector<string> &args) {
+
+    const string &name = args[1];
+    //stoi is a C++ function that converts a string (std::string) to an integer (int).
     int type = std::stoi(args[2]);
 
-    if (isSettlementExists(name)) {
-        throw std::runtime_error("Error: Settlement already exists.");
-    }
-
+    if (isFacilityExists(name)) {
+        return;
+    }        
+    //static_cast is a safe and specific way in C++ to perform type conversion between compatible data types at compile time.
     SettlementType settlementType = static_cast<SettlementType>(type);
     Settlement *newSettlement = new Settlement(name, settlementType);
     settlements.push_back(newSettlement);
 }
 
 void Simulation::createFacility(const std::vector<std::string> &args) {
-    if (args.size() != 7) {
-        throw std::runtime_error("Error: Invalid facility line format.");
-    }
+    const string &name = args[1];
 
-    const std::string &name = args[1];
-    FacilityCategory category = static_cast<FacilityCategory>(std::stoi(args[2]));
-    int price = std::stoi(args[3]);
-    int lifeQ = std::stoi(args[4]);
-    int ecoImpact = std::stoi(args[5]);
-    int envImpact = std::stoi(args[6]);
-
-    if (isFacilityExists(name)) {
-        throw std::runtime_error("Error: Facility already exists.");
-    }
+    //stoi is a C++ function that converts a string (std::string) to an integer (int).
+    //static_cast is a safe and specific way in C++ to perform type conversion between compatible data types at compile time.
+    FacilityCategory category = static_cast<FacilityCategory>(stoi(args[2]));
+    int price = stoi(args[3]);
+    int lifeQ = stoi(args[4]);
+    int ecoImpact = stoi(args[5]);
+    int envImpact = stoi(args[6]);
 
     FacilityType newFacility(name, category, price, lifeQ, ecoImpact, envImpact);
     facilitiesOptions.push_back(newFacility);
@@ -88,17 +100,18 @@ void Simulation::createPlan(const vector<string> &args) {
     }
     SelectionPolicy *selectionPolicy = nullptr;
     if (policy == "nve") {
-        selectionPolicy = new NaiveSelection(); // מדיניות בחירה נאיבית
+        selectionPolicy = new NaiveSelection(); 
     } else if (policy == "bal") {
-        selectionPolicy = new BalancedSelection(); // מדיניות מאוזנת
+        selectionPolicy = new BalancedSelection(0, 0, 0); 
     } else if (policy == "eco") {
-        selectionPolicy = new EconomySelection(); // מדיניות כלכלית
+        selectionPolicy = new EconomySelection(); 
     } else if (policy == "env") {
-        selectionPolicy = new SustainabilitySelection(); // מדיניות סביבתית
+        selectionPolicy = new SustainabilitySelection();
     }
 
     Settlement &settlement = getSettlement(settlementName);
-    plans.push_back(Plan(settlement, selectionPolicy));
+    Plan newPlan(planCounter++, settlement, selectionPolicy, facilitiesOptions);
+    plans.push_back(newPlan);
 }
 
 void Simulation::start() {
@@ -106,29 +119,25 @@ void Simulation::start() {
     isRunning = true;
 
     while (isRunning) {
-        // תצוגת קלט למשתמש
+
         cout << "> ";
         string input;
-        getline(cin, input); // קרא שורת פקודה מהמשתמש
+        getline(cin, input);
 
-        // שימוש ב-Auxiliary::parseArguments לפירוק הקלט
         vector<string> args = Auxiliary::parseArguments(input);
 
-        // טיפול בקלט ריק
         if (args.empty()) {
             continue;
         }
 
-        // זיהוי הפקודה הראשית
-        
         processCommand(args);
     }
 }
 
-void Simulation::processCommand(const vector<string>& args){    // כאן כתוב גוף הפונקציה
+void Simulation::processCommand(const vector<string>& args){   
 
     const string& command = args[0];
-    BaseAction* action = nullptr; // מצביע כללי לפעולה
+    BaseAction* action = nullptr; 
 
     //step:
     if (command == "step") {
@@ -152,7 +161,7 @@ void Simulation::processCommand(const vector<string>& args){    // כאן כתו
         settlementType = stoi(args[2]);
         action = new AddSettlement(settlementName, static_cast<SettlementType>(settlementType));
 
-    //facility:
+    //facility: 
     } else if (command == "facility") {
         const string& facilityName = args[1];
         int category, price, lifeQualityScore, economyScore, environmentScore;
@@ -171,28 +180,48 @@ void Simulation::processCommand(const vector<string>& args){    // כאן כתו
 
     }else if (command == "backup") {
         action = new BackupSimulation();
-    } 
-    else if (command == "restore") {
+    } else if (command == "restore") {
         action = new RestoreSimulation();
-    
-    } else if (command == "planStatus") {
+    } else if (command == "log"){
+        action = new PrintActionsLog();
+    }else if (command == "planStatus") {
         int planId;
-        planId = stoi(args[1]); // המרת המחרוזת למספר
+        planId = stoi(args[1]);
         action = new PrintPlanStatus(planId);
-
     } else if (command == "changePolicy") {
-
         int planId;
-        planId = stoi(args[1]); // המרת המחרוזת למספר
+        planId = stoi(args[1]);
         const string& selectionPolicy = args[2];
         action = new ChangePlanPolicy(planId, selectionPolicy);
-
-    
-    }if (action != nullptr) {
+    }else if (command == "close"){
+        action = new Close();
+    }
+    if (action != nullptr) {
         action->act(*this);
-        actionsLog.push_back(action); // שמירת הפעולה בלוג
+        actionsLog.push_back(action);
     }
    
+}
+
+void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy){
+    plans.push_back(*new Plan(planCounter++, settlement, selectionPolicy, facilitiesOptions));
+}
+
+bool Simulation::addSettlement(Settlement* settlement) {
+    if (isSettlementExists(settlement->getName())) {
+        return false; 
+    }
+
+    settlements.push_back(settlement);
+    return true; 
+}
+
+bool Simulation::addFacility(FacilityType facility) {
+    if (isFacilityExists(facility.getName())) {
+        return false;
+    }
+    facilitiesOptions.push_back(facility);
+    return true; 
 }
 
 bool Simulation::isSettlementExists(const string &settlementName) {
@@ -217,9 +246,39 @@ int Simulation::getPlanCounter() const{
     return planCounter;
 }
 
-//הוספת מחיקת משאבים
-void Simulation::close(){
-    //מחיקת משאבים??
+void Simulation::close() {
+    for (Plan& plan : plans) { 
+        plan.closePrint();
+    }
 
+    clear();
     isRunning = false;
+}
+
+void Simulation::clear() {
+
+    for (Settlement* settlement : settlements) {
+        delete settlement;
+    }
+    settlements.clear();
+
+    plans.clear();
+
+    for (BaseAction* action : actionsLog) {
+        delete action;
+    }
+    clearActionsLog();
+}
+
+void Simulation::printActionsLog() const {
+    for (const BaseAction* action : actionsLog) {
+        cout << action->toString() << endl; 
+    }
+}
+
+void Simulation::clearActionsLog() {
+    for (BaseAction* action : actionsLog) {
+        delete action;
+    }
+    actionsLog.clear();
 }

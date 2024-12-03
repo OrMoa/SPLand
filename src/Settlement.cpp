@@ -3,12 +3,10 @@
 // Constructor
 Settlement::Settlement(const string &name, SettlementType type) : name(name), type(type) {}
 
-// Get the name of the settlement
 const string &Settlement::getName() const {
     return name;
 }
 
-// Get the type of the settlement
 SettlementType Settlement::getType() const {
     return type;
 }

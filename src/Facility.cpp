@@ -6,6 +6,14 @@ FacilityType::FacilityType(const string &name, const FacilityCategory category, 
     : name(name), category(category), price(price), 
       lifeQuality_score(lifeQuality_score), economy_score(economy_score), environment_score(environment_score) {}
 
+FacilityType::FacilityType(const FacilityType &other)
+    : name(other.name), 
+      category(other.category), 
+      price(other.price), 
+      lifeQuality_score(other.lifeQuality_score), 
+      economy_score(other.economy_score), 
+      environment_score(other.environment_score) {}
+
 // Getters for FacilityType
 const string &FacilityType::getName() const {
     return name;
@@ -40,7 +48,12 @@ Facility::Facility(const string &name, const string &settlementName, const Facil
 Facility::Facility(const FacilityType &type, const string &settlementName)
     : FacilityType(type), settlementName(settlementName), status(FacilityStatus::UNDER_CONSTRUCTIONS), timeLeft(type.getCost()) {}
 
-// Getters for Facility
+Facility::Facility(const Facility &other)
+    : FacilityType(other), // קריאה לבנאי המעתיק של FacilityType
+      settlementName(other.settlementName), 
+      status(other.status), 
+      timeLeft(other.timeLeft) {}
+      
 const string &Facility::getSettlementName() const {
     return settlementName;
 }
@@ -76,10 +89,4 @@ const string Facility::toString() const {
 
     return "FacilityName: " + getName() + "\n" +
            "FacilityStatus: " + statusString;
-}
-
-void Facility::decrementTimeLeft() {
-    if (timeLeft > 0) {
-        --timeLeft; 
-    }
 }

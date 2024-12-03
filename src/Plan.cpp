@@ -1,9 +1,29 @@
 #include "Plan.h"
+#include <sstream>
 
 Plan::Plan(int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const std::vector<FacilityType> &facilityOptions)
     : plan_id(planId), settlement(settlement), selectionPolicy(selectionPolicy),
       facilityOptions(facilityOptions), status(PlanStatus::AVALIABLE),
       life_quality_score(0), economy_score(0), environment_score(0) {}
+
+Plan::Plan(const Plan& other)
+    : plan_id(other.plan_id), 
+      settlement(other.settlement), 
+      selectionPolicy(other.selectionPolicy ? other.selectionPolicy->clone() : nullptr), 
+      facilityOptions(other.facilityOptions), 
+      status(other.status), 
+      life_quality_score(other.life_quality_score), 
+      economy_score(other.economy_score), 
+      environment_score(other.environment_score) 
+{
+    for (Facility* facility : other.facilities) {
+        facilities.push_back(new Facility(*facility));
+    }
+
+    for (Facility* facility : other.underConstruction) {
+        underConstruction.push_back(new Facility(*facility));
+    }
+}
 
 //Destructor
 Plan::~Plan() {
@@ -14,6 +34,49 @@ Plan::~Plan() {
     for (auto facility : underConstruction) {
         delete facility;
     }
+}
+
+Plan& Plan::operator=(const Plan& other) {
+    if (this == &other) {
+        return *this; // הגנה מפני השמה עצמית
+    }
+
+    // ניקוי משאבים קיימים
+    delete selectionPolicy;
+    for (Facility* facility : facilities) {
+        delete facility;
+    }
+    facilities.clear();
+
+    for (Facility* facility : underConstruction) {
+        delete facility;
+    }
+    underConstruction.clear();
+
+    // העתקה עמוקה של מדיניות הבחירה
+    if (other.selectionPolicy) {
+        selectionPolicy = other.selectionPolicy->clone();
+    } else {
+        selectionPolicy = nullptr;
+    }
+
+    // העתקת רשימת מתקנים (עמוקה)
+    for (const Facility* facility : other.facilities) {
+        facilities.push_back(new Facility(*facility));
+    }
+
+    // העתקת מתקנים בבנייה (עמוקה)
+    for (const Facility* facility : other.underConstruction) {
+        underConstruction.push_back(new Facility(*facility));
+    }
+
+    // העתקת שדות פשוטים
+    plan_id = other.plan_id;
+    status = other.status;
+
+    // הערה: settlement נשאר ללא שינוי כי הוא const reference
+
+    return *this;
 }
 
 const vector<Facility*>& Plan::getFacilities() const {
@@ -49,7 +112,6 @@ const int Plan::getPlanId() const{
 }
 
 
-//לבדוק 
 void Plan::setSelectionPolicy(SelectionPolicy *newPolicy) {
     if (selectionPolicy) {
         delete selectionPolicy;
@@ -68,71 +130,83 @@ void Plan::addFacility(Facility* facility){
     } 
 }
 
-//לממש
 const string Plan::toString() const {
+    std::ostringstream output;
+
+    output << "PlanID: " << plan_id << "\n";
+    output << "SettlementName: " << settlement.getName() << "\n";
+    output << "PlanStatus: " << (status == PlanStatus::AVALIABLE ? "AVALIABLE" : "BUSY") << "\n";
+    output << "SelectionPolicy: " << (selectionPolicy ? selectionPolicy->toString() : "None") << "\n";
+    output << "LifeQualityScore: " << life_quality_score << "\n";
+    output << "EconomyScore: " << economy_score << "\n";
+    output << "EnvironmentScore: " << environment_score << "\n";
+
+    // מתקנים בבנייה
+    for (const Facility* facility : underConstruction) {
+        output << "FacilityName: " << facility->getName() << "\n"
+               << "FacilityStatus: UNDER_CONSTRUCTIONS\n";
     }
+
+    // מתקנים שהושלמו
+    for (const Facility* facility : facilities) {
+        output << "FacilityName: " << facility->getName() << "\n"
+               << "FacilityStatus: OPERATIONAL\n";
+    }
+
+    return output.str(); // החזרת המחרוזת שנוצרה
+}
+
+const void Plan::closePrint() const {
+    std::cout << "PlanID: " << plan_id << "\n"
+              << "SettlementName: " << settlement.getName() << "\n"
+              << "LifeQualityScore: " << life_quality_score << "\n"
+              << "EconomyScore: " << economy_score << "\n"
+              << "EnvironmentScore: " << environment_score << "\n";
+
+}
 
 const PlanStatus Plan::getStatus() const{
     return status;
 }
 
-// נדרש? קיים כפל קוד?
 void Plan::printStatus() {
-    std::cout << "PlanID: " << plan_id << "\n"
-              << "SettlementName: " << settlement.getName() << "\n"
-              << "PlanStatus: " << (status == PlanStatus::AVALIABLE ? "AVALIABLE" : "BUSY") << "\n"
-              << "LifeQualityScore: " << life_quality_score << "\n"
-              << "EconomyScore: " << economy_score << "\n"
-              << "EnvironmentScore: " << environment_score << "\n"
-              << "Facilities Under Construction: " << underConstruction.size() << "\n"
-              << "Facilities Completed: " << facilities.size() << "\n";
+    std::cout << toString();
 }
 
 void Plan::step() {
-    // שלב 1: בדיקת סטטוס
     if (status == PlanStatus::BUSY) {
-        // אם עסוק, נבצע רק עדכון מתקנים בבנייה
         updateUnderConstruction();
         return;
     }
 
-    // שלב 2: הוספת מתקנים ל-`underConstruction`
     int constructionLimit = settlement.getConstructionLimit();
     while (underConstruction.size() < constructionLimit) {
-        const FacilityType* nextFacilityType = selectionPolicy->selectFacility(facilityOptions);
-
-        // אם אין מתקנים זמינים, עצור
+        const FacilityType* nextFacilityType = &selectionPolicy->selectFacility(facilityOptions);       
         if (nextFacilityType == nullptr) {
             break;
         }
-
-        // יצירת מתקן חדש והוספתו ל-`underConstruction`
         Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
-        addFacility(newFacility); // שימוש במתודת העזר
+        addFacility(newFacility); 
     }
-
-    // שלב 3: עדכון מתקנים בבנייה
     updateUnderConstruction();
+    if (underConstruction.size() < settlement.getConstructionLimit()) {
+        status = PlanStatus::AVALIABLE;
+    } else {
+        status = PlanStatus::BUSY;
+    }
 }
 
 void Plan::updateUnderConstruction() {
-
     for (auto it = underConstruction.begin(); it != underConstruction.end();) {
         Facility* facility = *it;
-        facility->decrementTimeLeft(); // הפחתת זמן הבנייה
+        FacilityStatus status = facility->step(); 
 
-        if (facility->getTimeLeft() == 0) {
-            facility->setStatus(FacilityStatus::OPERATIONAL);
-            facilities.push_back(facility); // העברת המצביע לוקטור השני
-            it = underConstruction.erase(it); // מחיקת האיבר ועדכון האיטרטור***לבדוק
+        if (status == FacilityStatus::OPERATIONAL) {
+            facilities.push_back(facility); 
+            it = underConstruction.erase(it); 
         } else {
-            ++it; // התקדמות ידנית אם האיבר לא נמחק
+            ++it; 
         }
-    }
-    if (underConstruction.empty()) {
-        status = PlanStatus::AVALIABLE; // אין מתקנים בבנייה
-    } else if (underConstruction.size() >= settlement.getConstructionLimit()) {
-        status = PlanStatus::BUSY; // הגעת למגבלת הבנייה
     }
 }
 
@@ -141,8 +215,4 @@ void Plan::setSelectionPolicy(SelectionPolicy* newPolicy) {
         delete selectionPolicy;
     }
     selectionPolicy = newPolicy;
-
-    if (auto* naivePolicy = dynamic_cast<NaiveSelection*>(selectionPolicy)) {
-        naivePolicy->reset();
-    }
 }
