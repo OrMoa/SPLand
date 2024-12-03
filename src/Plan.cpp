@@ -1,21 +1,24 @@
 #include "Plan.h"
 #include <sstream>
+using std::vector;
 
-Plan::Plan(int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const std::vector<FacilityType> &facilityOptions)
-    : plan_id(planId), settlement(settlement), selectionPolicy(selectionPolicy),
-      facilityOptions(facilityOptions), status(PlanStatus::AVALIABLE),
-      life_quality_score(0), economy_score(0), environment_score(0) {}
+Plan::Plan(int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy,
+           const std::vector<FacilityType> &facilityOptions)
+    : plan_id(planId),
+      settlement(settlement),
+      selectionPolicy(selectionPolicy),
+      facilityOptions(facilityOptions),
+      status(PlanStatus::AVALIABLE),
+      life_quality_score(0),
+      economy_score(0),
+      environment_score(0) {}
 
 Plan::Plan(const Plan& other)
-    : plan_id(other.plan_id), 
-      settlement(other.settlement), 
-      selectionPolicy(other.selectionPolicy ? other.selectionPolicy->clone() : nullptr), 
-      facilityOptions(other.facilityOptions), 
-      status(other.status), 
-      life_quality_score(other.life_quality_score), 
-      economy_score(other.economy_score), 
-      environment_score(other.environment_score) 
-{
+    : plan_id(other.plan_id), settlement(other.settlement), 
+      selectionPolicy(other.selectionPolicy), facilityOptions(other.facilityOptions),
+      status(other.status), life_quality_score(other.life_quality_score),
+      economy_score(other.economy_score), environment_score(other.environment_score) {
+    
     for (Facility* facility : other.facilities) {
         facilities.push_back(new Facility(*facility));
     }
@@ -27,54 +30,54 @@ Plan::Plan(const Plan& other)
 
 //Destructor
 Plan::~Plan() {
-    delete selectionPolicy;
-    for (auto facility : facilities) {
-        delete facility;
-    }
-    for (auto facility : underConstruction) {
-        delete facility;
-    }
-}
-
-Plan& Plan::operator=(const Plan& other) {
-    if (this == &other) {
-        return *this; // הגנה מפני השמה עצמית
+    if (selectionPolicy) { // בדוק אם המצביע מאותחל
+        delete selectionPolicy;
+        selectionPolicy = nullptr; // אפס את המצביע למניעת שחרור כפול
     }
 
-    // ניקוי משאבים קיימים
-    delete selectionPolicy;
-    for (Facility* facility : facilities) {
+    for (auto* facility : facilities) {
         delete facility;
     }
     facilities.clear();
 
-    for (Facility* facility : underConstruction) {
+    for (auto* facility : underConstruction) {
+        delete facility;
+    }
+    underConstruction.clear();
+}
+
+Plan& Plan::operator=(const Plan& other) {
+    if (this == &other) return *this;
+
+    if (selectionPolicy) {
+        delete selectionPolicy;
+    }
+
+    for (auto* facility : facilities) {
+        delete facility;
+    }
+    facilities.clear();
+
+    for (auto* facility : underConstruction) {
         delete facility;
     }
     underConstruction.clear();
 
-    // העתקה עמוקה של מדיניות הבחירה
-    if (other.selectionPolicy) {
-        selectionPolicy = other.selectionPolicy->clone();
-    } else {
-        selectionPolicy = nullptr;
-    }
+    plan_id = other.plan_id;
+    settlement = other.settlement;
+    selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
+    facilityOptions = other.facilityOptions;
+    status = other.status;
+    life_quality_score = other.life_quality_score;
+    economy_score = other.economy_score;
+    environment_score = other.environment_score;
 
-    // העתקת רשימת מתקנים (עמוקה)
-    for (const Facility* facility : other.facilities) {
+    for (auto* facility : other.facilities) {
         facilities.push_back(new Facility(*facility));
     }
-
-    // העתקת מתקנים בבנייה (עמוקה)
-    for (const Facility* facility : other.underConstruction) {
+    for (auto* facility : other.underConstruction) {
         underConstruction.push_back(new Facility(*facility));
     }
-
-    // העתקת שדות פשוטים
-    plan_id = other.plan_id;
-    status = other.status;
-
-    // הערה: settlement נשאר ללא שינוי כי הוא const reference
 
     return *this;
 }
@@ -109,14 +112,6 @@ const SelectionPolicy* Plan::getSelectionPolicy() const {
 
 const int Plan::getPlanId() const{
     return plan_id;
-}
-
-
-void Plan::setSelectionPolicy(SelectionPolicy *newPolicy) {
-    if (selectionPolicy) {
-        delete selectionPolicy;
-    }
-    selectionPolicy = newPolicy->clone();
 }
 
 void Plan::addFacility(Facility* facility){

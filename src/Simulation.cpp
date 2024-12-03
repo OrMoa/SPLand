@@ -11,7 +11,8 @@
 
 using namespace std;
 
-Simulation::Simulation(const string &configFilePath) : isRunning(false), planCounter(0){
+Simulation::Simulation(const string &configFilePath) : isRunning(false),
+ planCounter(0), actionsLog(), plans(), settlements(), facilitiesOptions() {
     std::ifstream file(configFilePath);
     string line;
     while (std::getline(file, line)) {
@@ -39,9 +40,9 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
 }
 
 Simulation::Simulation(const Simulation& other) 
-    : isRunning(other.isRunning), 
-      planCounter(other.planCounter), 
-      facilitiesOptions(other.facilitiesOptions) 
+    : isRunning(other.isRunning), planCounter(other.planCounter), 
+      actionsLog(other.actionsLog), plans(other.plans), 
+      settlements(other.settlements), facilitiesOptions(other.facilitiesOptions)
 {
     for (Settlement* settlement : other.settlements) {
         settlements.push_back(new Settlement(*settlement));
@@ -58,6 +59,11 @@ Simulation::Simulation(const Simulation& other)
 
 Simulation::~Simulation() {
     clear();
+}
+
+void Simulation::open(){
+    cout << "The simulation has started." << endl;
+    isRunning = true;
 }
 
 void Simulation::createSettlement(const vector<string> &args) {
@@ -115,9 +121,7 @@ void Simulation::createPlan(const vector<string> &args) {
 }
 
 void Simulation::start() {
-    cout << "The simulation has started." << endl;
-    isRunning = true;
-
+    open();
     while (isRunning) {
 
         cout << "> ";
@@ -198,7 +202,7 @@ void Simulation::processCommand(const vector<string>& args){
     }
     if (action != nullptr) {
         action->act(*this);
-        actionsLog.push_back(action);
+        addAction(action);
     }
    
 }
@@ -274,6 +278,31 @@ void Simulation::printActionsLog() const {
     for (const BaseAction* action : actionsLog) {
         cout << action->toString() << endl; 
     }
+}
+
+void Simulation::addAction(BaseAction *action){
+    actionsLog.push_back(action);
+}
+
+Settlement& Simulation::getSettlement(const string& settlementName) {
+    Settlement* result = nullptr; 
+    for (Settlement* settlement : settlements) {
+        if (settlement->getName() == settlementName) {
+            result = settlement;  
+            break;  
+        }
+    }
+    return *result; 
+}
+
+void Simulation::step() {
+    for (Plan& plan : plans) {
+        plan.step();  
+    }
+}
+
+Plan& Simulation::getPlan(const int planID) {
+    return plans[planID];
 }
 
 void Simulation::clearActionsLog() {

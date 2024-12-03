@@ -14,6 +14,17 @@ FacilityType::FacilityType(const FacilityType &other)
       economy_score(other.economy_score), 
       environment_score(other.environment_score) {}
 
+FacilityType& FacilityType::operator=(const FacilityType& other) {
+    if (this == &other) {
+        return *this;  // מונע העתקה עצמית
+    }
+    // מחיקת האובייקט הנוכחי
+    this->~FacilityType();  // קריאה לבנאי ההשמדת האובייקט הנוכחי
+    // יצירת מופע חדש במקום האובייקט הנוכחי
+    new (this) FacilityType(other);  // Placement new: יצירת אובייקט חדש במקום האובייקט הנוכחי
+    return *this;  // מחזיר את המצביע לאובייקט הנוכחי
+}
+
 // Getters for FacilityType
 const string &FacilityType::getName() const {
     return name;
