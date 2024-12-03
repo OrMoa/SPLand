@@ -2,16 +2,13 @@
 #include <sstream>
 using std::vector;
 
-Plan::Plan(int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy,
+Plan::Plan(int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, 
            const std::vector<FacilityType> &facilityOptions)
-    : plan_id(planId),
-      settlement(settlement),
-      selectionPolicy(selectionPolicy),
-      facilityOptions(facilityOptions),
-      status(PlanStatus::AVALIABLE),
-      life_quality_score(0),
-      economy_score(0),
-      environment_score(0) {}
+    : plan_id(planId), settlement(settlement), selectionPolicy(selectionPolicy),
+      facilityOptions(facilityOptions), status(PlanStatus::AVALIABLE),
+      life_quality_score(0), economy_score(0), environment_score(0) {
+    
+}
 
 Plan::Plan(const Plan& other)
     : plan_id(other.plan_id), settlement(other.settlement), 
@@ -30,57 +27,71 @@ Plan::Plan(const Plan& other)
 
 //Destructor
 Plan::~Plan() {
-    if (selectionPolicy) { // בדוק אם המצביע מאותחל
+    // מחיקת selectionPolicy אם הוא מאותחל
+    if (selectionPolicy != nullptr) {
         delete selectionPolicy;
-        selectionPolicy = nullptr; // אפס את המצביע למניעת שחרור כפול
+        selectionPolicy = nullptr; // איפוס למניעת גישה כפולה
     }
 
-    for (auto* facility : facilities) {
-        delete facility;
+    // מחיקת מתקנים מ-facilities
+    for (Facility* facility : facilities) {
+        if (facility != nullptr) {
+            delete facility;
+        }
     }
-    facilities.clear();
+    facilities.clear(); // ניקוי הווקטור
 
-    for (auto* facility : underConstruction) {
-        delete facility;
+    // מחיקת מתקנים מ-underConstruction
+    for (Facility* facility : underConstruction) {
+        if (facility != nullptr) {
+            delete facility;
+        }
     }
-    underConstruction.clear();
+    underConstruction.clear(); // ניקוי הווקטור
 }
 
 Plan& Plan::operator=(const Plan& other) {
-    if (this == &other) return *this;
 
-    if (selectionPolicy) {
-        delete selectionPolicy;
+    if (this == &other) {
+        return *this; 
     }
+
+    delete selectionPolicy;
 
     for (auto* facility : facilities) {
         delete facility;
     }
     facilities.clear();
 
-    for (auto* facility : underConstruction) {
+    for (Facility* facility : underConstruction) {
         delete facility;
     }
     underConstruction.clear();
 
-    plan_id = other.plan_id;
-    settlement = other.settlement;
-    selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
-    facilityOptions = other.facilityOptions;
-    status = other.status;
-    life_quality_score = other.life_quality_score;
-    economy_score = other.economy_score;
-    environment_score = other.environment_score;
+    // העתקה עמוקה של מדיניות הבחירה
+    if (other.selectionPolicy != nullptr) {
+        selectionPolicy = other.selectionPolicy->clone();
+    } else {
+        selectionPolicy = nullptr;
+    }
 
-    for (auto* facility : other.facilities) {
+    // העתקת רשימת מתקנים (עמוקה)
+    for (const Facility* facility : other.facilities) {
         facilities.push_back(new Facility(*facility));
     }
-    for (auto* facility : other.underConstruction) {
+
+    // העתקת מתקנים בבנייה (עמוקה)
+    for (const Facility* facility : other.underConstruction) {
         underConstruction.push_back(new Facility(*facility));
     }
 
+    
+    plan_id = other.plan_id;
+    status = other.status;
+
     return *this;
 }
+
 
 const vector<Facility*>& Plan::getFacilities() const {
     return facilities;
