@@ -37,12 +37,13 @@ Plan::~Plan() {
 }
 
 Plan& Plan::operator=(const Plan& other) {
+
     if (this == &other) {
-        return *this; // הגנה מפני השמה עצמית
+        return *this; 
     }
 
-    // ניקוי משאבים קיימים
     delete selectionPolicy;
+
     for (Facility* facility : facilities) {
         delete facility;
     }
@@ -54,7 +55,7 @@ Plan& Plan::operator=(const Plan& other) {
     underConstruction.clear();
 
     // העתקה עמוקה של מדיניות הבחירה
-    if (other.selectionPolicy) {
+    if (other.selectionPolicy != nullptr) {
         selectionPolicy = other.selectionPolicy->clone();
     } else {
         selectionPolicy = nullptr;
@@ -70,11 +71,9 @@ Plan& Plan::operator=(const Plan& other) {
         underConstruction.push_back(new Facility(*facility));
     }
 
-    // העתקת שדות פשוטים
+    
     plan_id = other.plan_id;
     status = other.status;
-
-    // הערה: settlement נשאר ללא שינוי כי הוא const reference
 
     return *this;
 }
