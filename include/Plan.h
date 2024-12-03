@@ -6,6 +6,7 @@
 #include <iostream>
 using std::vector;
 using std::string;
+#include <sstream>
 
 
 enum class PlanStatus {
@@ -17,8 +18,8 @@ class Plan {
     public:
         Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions);
         ~Plan();
-        Plan(const Plan&) = delete;
-        Plan& operator=(const Plan&) = delete;
+        Plan(const Plan&);
+        Plan& operator=(const Plan&);
         const int getlifeQualityScore() const;
         const int getEconomyScore() const;
         const int getEnvironmentScore() const;
@@ -33,12 +34,9 @@ class Plan {
         const Settlement getSettlement();
         const vector<Facility*>& getUnderConstruction() const;
         const SelectionPolicy* getSelectionPolicy() const;
-<<<<<<< HEAD
-        
-=======
         const int getPlanId() const;
+        const void closePrint() const;
 
->>>>>>> f4b9d9f7fb61509794aae48d78d5840b0fd2e5bd
 
     private:
         int plan_id;

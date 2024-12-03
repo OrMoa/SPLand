@@ -13,6 +13,8 @@ class SelectionPolicy;
 class Simulation {
     public:
         Simulation(const string &configFilePath);
+        Simulation(const Simulation& other);
+        ~Simulation();
         void start();
         void addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy);
         void addAction(BaseAction *action);
@@ -26,8 +28,11 @@ class Simulation {
         void close();
         void open();
         void processCommand(const vector<string>& args);
-        //void simulateStep(int numOfSteps);
         int getPlanCounter() const;
+        void clear();
+        void clearActionsLog();
+        void printActionsLog() const;
+        
         
 
     private:

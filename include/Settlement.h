@@ -15,6 +15,8 @@ enum class SettlementType {
 class Settlement {
     public:
         Settlement(const string &name, SettlementType type);
+        ~Settlement(); // הוספת בנאי הורס
+        void clear();  // פונקציה לניקוי הנתונים הפנימיים
         const string &getName() const;
         SettlementType getType() const;
         const string toString() const;

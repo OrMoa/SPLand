@@ -5,8 +5,6 @@
 using std::vector;
 
 #include "SelectionPolicy.h"
-//#include <stdexcept>
-//#include <algorithm>
 
 // Base SelectionPolicy Implementation
 SelectionPolicy::~SelectionPolicy() = default;
@@ -15,10 +13,6 @@ SelectionPolicy::~SelectionPolicy() = default;
 NaiveSelection::NaiveSelection() : lastSelectedIndex(-1) {}
 
 const FacilityType& NaiveSelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
-<<<<<<< HEAD
-    
-=======
->>>>>>> f4b9d9f7fb61509794aae48d78d5840b0fd2e5bd
     lastSelectedIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
     return facilitiesOptions[lastSelectedIndex];
 }
@@ -31,9 +25,6 @@ NaiveSelection* NaiveSelection::clone() const {
     return new NaiveSelection(*this); // יצירת עותק באמצעות בנאי ההעתקה
 }
  
-void NaiveSelection::reset() {
-    lastSelectedIndex = -1;
-}
  
  //BalancedSelection Implementation
 BalancedSelection::BalancedSelection(int lifeQuality, int economy, int environment)
@@ -68,9 +59,6 @@ const string BalancedSelection::toString() const {
     return "Balanced Selection";
 }
 
-int BalancedSelection::getLifeQualityScore() const {
-    return LifeQualityScore;
-}
 
 // EconomySelection Implementation
 EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}

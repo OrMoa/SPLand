@@ -20,7 +20,6 @@ class NaiveSelection: public SelectionPolicy {
         const string toString() const override;
         NaiveSelection *clone() const override;
         ~NaiveSelection() override = default;
-        void reset();
     private:
         int lastSelectedIndex;
 };
