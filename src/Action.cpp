@@ -1,6 +1,10 @@
 #include "Action.h"
 #include "SelectionPolicy.h"
 
+//baseAction:
+BaseAction::BaseAction() 
+    : errorMsg(""), status(ActionStatus::COMPLETED) {
+}
 
 ActionStatus BaseAction::getStatus() const {
     return status;
@@ -24,11 +28,8 @@ const std::string& BaseAction::getErrorMsg() const {
 SimulateStep::SimulateStep(const int numOfSteps) : numOfSteps(numOfSteps) {}
 
 void SimulateStep::act(Simulation& simulation) {
-    
     for (int stepLeft = 0; stepLeft < numOfSteps; ++stepLeft) {
-        for (int i =0; i<= simulation.getPlanCounter(); ++i) {
-            simulation.getPlan(i).step();      
-        }
+        simulation.step();
     }
 }
 
@@ -186,9 +187,16 @@ const string PrintPlanStatus::toString() const {
 
 Close::Close() {}
 
-
 void Close::act(Simulation &simulation) {
     simulation.close();
+}
+
+const string Close::toString() const {
+    return "Close action";  
+}
+
+Close* Close::clone() const {
+    return new Close(*this);  
 }
 
 //BackupSimulation

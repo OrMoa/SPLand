@@ -6,9 +6,6 @@ using std::vector;
 
 #include "SelectionPolicy.h"
 
-// Base SelectionPolicy Implementation
-SelectionPolicy::~SelectionPolicy() = default;
-
 // NaiveSelection Implementation
 NaiveSelection::NaiveSelection() : lastSelectedIndex(-1) {}
 
@@ -59,39 +56,56 @@ const string BalancedSelection::toString() const {
     return "Balanced Selection";
 }
 
-
+BalancedSelection* BalancedSelection::clone() const {
+    return new BalancedSelection(*this); 
+}
 // EconomySelection Implementation
 EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
 
 const FacilityType& EconomySelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
-    int startIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
-    for (int i = 0; i < facilitiesOptions.size(); ++i) {
-        int currentIndex = (startIndex + i) % facilitiesOptions.size();
+    
+    static FacilityType nullFacility("null", FacilityCategory::LIFE_QUALITY, 0, 0, 0, 0); // יצירת מתקן "null"
+    size_t startIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
+    for (size_t i = 0; i < facilitiesOptions.size(); ++i) {
+        size_t currentIndex = (startIndex + i) % facilitiesOptions.size();
         if (facilitiesOptions[currentIndex].getCategory() == static_cast<FacilityCategory>(1)) {
             lastSelectedIndex = currentIndex;
             return facilitiesOptions[currentIndex];
         }
     }
+    return nullFacility;
 }
 
 const string EconomySelection::toString() const {
     return "Economy Selection";
 }
 
+EconomySelection* EconomySelection::clone() const {
+    return new EconomySelection(*this); 
+}
+
 // SustainabilitySelection Implementation
 SustainabilitySelection::SustainabilitySelection() : lastSelectedIndex(-1) {}
 
 const FacilityType& SustainabilitySelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
-     int startIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
-    for (int i = 0; i < facilitiesOptions.size(); ++i) {
-        int currentIndex = (startIndex + i) % facilitiesOptions.size();
+    
+    static FacilityType nullFacility("null", FacilityCategory::LIFE_QUALITY, 0, 0, 0, 0);
+    size_t startIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
+
+    for (size_t i = 0; i < facilitiesOptions.size(); ++i) {
+        size_t currentIndex = (startIndex + i) % facilitiesOptions.size();
         if (facilitiesOptions[currentIndex].getCategory() == static_cast<FacilityCategory>(2)) {
             lastSelectedIndex = currentIndex;
             return facilitiesOptions[currentIndex];
         }
     }
+    return nullFacility;
 }
 
 const string SustainabilitySelection::toString() const {
     return "Sustainability Selection";
+}
+
+SustainabilitySelection* SustainabilitySelection::clone() const {
+    return new SustainabilitySelection(*this); 
 }
