@@ -229,9 +229,8 @@ void RestoreSimulation::act(Simulation &simulation) {
         error("No backup available");
         return;
     }
-    simulation.clear();
-    simulation = *backup;
-
+    simulation.clearToRestore();
+    simulation.restoreFromBackup();
     complete();
 }
 

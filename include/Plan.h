@@ -17,7 +17,7 @@ enum class PlanStatus {
 class Plan {
     public:
         Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions);
-        ~Plan();
+        ~Plan()=default;
         Plan(const Plan&);
         Plan& operator=(const Plan&);
         const int getlifeQualityScore() const;

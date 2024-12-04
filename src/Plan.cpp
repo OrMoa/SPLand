@@ -26,7 +26,7 @@ Plan::Plan(const Plan& other)
 }
 
 //Destructor
-Plan::~Plan() {
+/*Plan::~Plan() {
     // מחיקת selectionPolicy אם הוא מאותחל
     if (selectionPolicy != nullptr) {
         delete selectionPolicy;
@@ -48,7 +48,7 @@ Plan::~Plan() {
         }
     }
     underConstruction.clear(); // ניקוי הווקטור
-}
+}*/
 
 Plan& Plan::operator=(const Plan& other) {
 
