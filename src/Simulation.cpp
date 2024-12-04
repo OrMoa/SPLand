@@ -58,17 +58,15 @@ Simulation::Simulation(const Simulation& other)
 }
 
 void Simulation::clearToClose() {
-    // שחרור האובייקטים בתוך settlements
     for (Settlement* settlement : settlements) {
         delete settlement;
     }
-    settlements.clear(); // ניקוי הווקטור
+    settlements.clear(); 
 
-    // אין צורך לשחרר את plans באופן ידני, כיוון שזהו וקטור של אובייקטים רגילים
     for (Plan& plan : plans) {
-        delete plan.getSelectionPolicy(); // מחיקת SelectionPolicy
+        delete plan.getSelectionPolicy(); 
     }
-    plans.clear(); // פשוט מנקים את הווקטור
+    plans.clear(); 
 
     // שחרור האובייקטים בתוך actionsLog
     for (BaseAction* action : actionsLog) {
@@ -245,11 +243,13 @@ void Simulation::processCommand(const vector<string>& args){
     }else if (command == "close"){
         action = new Close();
     }
-    if (action != nullptr) {
+    if (action != nullptr && command != "log") {
         addAction(action);
         action->act(*this);
+    } else if (action != nullptr && command == "log") {
+        action->act(*this);
+        addAction(action);
     }
-   
 }
 
 void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy){

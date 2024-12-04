@@ -22,7 +22,7 @@
 	// Features to add to the dev container. More info: https://containers.dev/implementors/features.
 	// "features": {},
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// Use 'forwardPorts' to make a list of ports inside the container AVALIABLE locally.
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
