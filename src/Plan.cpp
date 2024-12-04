@@ -181,41 +181,43 @@ void Plan::printStatus() {
 }
 
 void Plan::step() {
-    if (status == PlanStatus::BUSY) {
-        updateUnderConstruction();
-        return;
-    }
-
     size_t constructionLimit = settlement.getConstructionLimit();
-    while (underConstruction.size() < constructionLimit) {
-        const FacilityType* nextFacilityType = &selectionPolicy->selectFacility(facilityOptions);       
-        if (nextFacilityType == nullptr) {
-            break;
+    if(status == PlanStatus::AVALIABLE){
+        while (underConstruction.size() < constructionLimit) {
+            addNewToConstruction();
         }
-        Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
-        addFacility(newFacility); 
     }
-    updateUnderConstruction();
+   
+    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
+    Facility* facility = *it;
+
+    if (facility != nullptr) {
+        facility->step();  // קריאה לפונקציה step() עבור כל Facility
+
+        // בדיקה אם המתקן הפך ל-OPERATIONAL
+        if (facility->getStatus() == FacilityStatus::OPERATIONAL) {
+            addFacility(facility); 
+            it = underConstruction.erase(it);  // מחק מ-underConstruction ועבור לאיבר הבא
+            continue;  // דלג על ההגדלה של it במקרה של מחיקה
+        }
+    }
+    ++it;  // עבור לאיבר הבא
+    }
     if (underConstruction.size() < constructionLimit) {
         status = PlanStatus::AVALIABLE;
-    } else {
+    }
+    else{
         status = PlanStatus::BUSY;
     }
 }
 
-void Plan::updateUnderConstruction() {
-    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
-        Facility* facility = *it;
-        FacilityStatus status = facility->step(); 
-
-        if (status == FacilityStatus::OPERATIONAL) {
-            facilities.push_back(facility); 
-            it = underConstruction.erase(it); 
-        } else {
-            ++it; 
+void Plan::addNewToConstruction(){
+    const FacilityType* nextFacilityType = &selectionPolicy->selectFacility(facilityOptions);       
+        if (nextFacilityType != nullptr) {
+            Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
+            addFacility(newFacility); 
         }
     }
-}
 
 void Plan::setSelectionPolicy(SelectionPolicy* newPolicy) {
     if (selectionPolicy != nullptr) {

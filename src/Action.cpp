@@ -172,7 +172,7 @@ void PrintPlanStatus::act(Simulation &simulation) {
    }
    else{
         Plan &plan = simulation.getPlan(planId);
-        cout << plan.toString() << endl;
+        plan.printStatus();
         complete();
    }
 }
