@@ -57,8 +57,53 @@ Simulation::Simulation(const Simulation& other)
     }
 }
 
-Simulation::~Simulation() {
-    clear();
+void Simulation::clearToClose() {
+    // שחרור האובייקטים בתוך settlements
+    for (Settlement* settlement : settlements) {
+        delete settlement;
+    }
+    settlements.clear(); // ניקוי הווקטור
+
+    // אין צורך לשחרר את plans באופן ידני, כיוון שזהו וקטור של אובייקטים רגילים
+    for (Plan& plan : plans) {
+        delete plan.getSelectionPolicy(); // מחיקת SelectionPolicy
+    }
+    plans.clear(); // פשוט מנקים את הווקטור
+
+    // שחרור האובייקטים בתוך actionsLog
+    for (BaseAction* action : actionsLog) {
+        delete action;
+    }
+    actionsLog.clear(); // ניקוי הווקטור
+
+    // אין צורך למחוק את facilitiesOptions כי הוא וקטור של אובייקטים רגילים
+    facilitiesOptions.clear(); // פשוט מנקים את הווקטור
+
+    // אם backup קיים, שחרר אותו
+    if (backup != nullptr) {
+        delete backup;
+        backup = nullptr; // איפוס כדי למנוע גישה כפולה
+    }
+}
+
+void Simulation::clearToRestore() {
+    // שחרור האובייקטים בתוך settlements
+    for (Settlement* settlement : settlements) {
+        delete settlement;
+    }
+    settlements.clear(); // ניקוי הווקטור
+
+    // אין צורך לשחרר את plans באופן ידני, כיוון שזהו וקטור של אובייקטים רגילים
+    plans.clear(); // פשוט מנקים את הווקטור
+
+    // אין צורך למחוק את facilitiesOptions כי הוא וקטור של אובייקטים רגילים
+    facilitiesOptions.clear(); // פשוט מנקים את הווקטור
+
+    // אם backup קיים, שחרר אותו
+    if (backup != nullptr) {
+        delete backup;
+        backup = nullptr; // איפוס כדי למנוע גישה כפולה
+    }
 }
 
 void Simulation::open(){
@@ -106,7 +151,7 @@ void Simulation::createPlan(const vector<string> &args) {
     }
     SelectionPolicy *selectionPolicy = nullptr;
     if (policy == "nve") {
-        selectionPolicy = new NaiveSelection(); 
+        selectionPolicy =  new NaiveSelection(); 
     } else if (policy == "bal") {
         selectionPolicy = new BalancedSelection(0, 0, 0); 
     } else if (policy == "eco") {
@@ -201,8 +246,8 @@ void Simulation::processCommand(const vector<string>& args){
         action = new Close();
     }
     if (action != nullptr) {
-        action->act(*this);
         addAction(action);
+        action->act(*this);
     }
    
 }
@@ -255,23 +300,8 @@ void Simulation::close() {
         plan.closePrint();
     }
 
-    clear();
+    clearToClose();
     isRunning = false;
-}
-
-void Simulation::clear() {
-
-    for (Settlement* settlement : settlements) {
-        delete settlement;
-    }
-    settlements.clear();
-
-    plans.clear();
-
-    for (BaseAction* action : actionsLog) {
-        delete action;
-    }
-    clearActionsLog();
 }
 
 void Simulation::printActionsLog() const {
@@ -305,9 +335,16 @@ Plan& Simulation::getPlan(const int planID) {
     return plans[planID];
 }
 
-void Simulation::clearActionsLog() {
-    for (BaseAction* action : actionsLog) {
-        delete action;
+void Simulation::restoreFromBackup() {
+
+    // העתקת ה-settlements מה-backup
+    for (const Settlement* settlement : backup->settlements) {
+        settlements.push_back(new Settlement(*settlement)); // העתקה עמוקה
     }
-    actionsLog.clear();
+
+    // העתקת ה-plans
+    plans = backup->plans; // העתקה ישירה (תלויה בתמיכה ב-Rule of 5)
+
+    // העתקת ה-facilitiesOptions
+    facilitiesOptions = backup->facilitiesOptions; // העתקה פשוטה
 }
