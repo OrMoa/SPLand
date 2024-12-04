@@ -34,7 +34,8 @@ void SimulateStep::act(Simulation& simulation) {
 }
 
 const string SimulateStep::toString() const {
-    return "step" + numOfSteps;
+    return "step " + to_string(numOfSteps) + " " + 
+           (getStatus() == ActionStatus::COMPLETED ? "COMPLETED" : "ERROR (" + getErrorMsg() + ")");
 }
 
 SimulateStep* SimulateStep::clone() const {
@@ -226,7 +227,7 @@ RestoreSimulation::RestoreSimulation(){};
 
 void RestoreSimulation::act(Simulation &simulation) {
     if (backup == nullptr) {
-        error("No backup available");
+        error("No backup AVALIABLE");
         return;
     }
     simulation.clearToRestore();
