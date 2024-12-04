@@ -53,7 +53,7 @@ const FacilityType& BalancedSelection::selectFacility(const std::vector<Facility
 }
 
 const string BalancedSelection::toString() const {
-    return "Balanced Selection";
+    return "bal";
 }
 
 BalancedSelection* BalancedSelection::clone() const {

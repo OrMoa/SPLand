@@ -74,11 +74,12 @@ const int Facility::getTimeLeft() const {
 }
 
 FacilityStatus Facility::step() {
-    if (timeLeft > 0) {
-        --timeLeft;
-        if (timeLeft == 0) {
+    --timeLeft;
+    if (timeLeft == 0) {
             status = FacilityStatus::OPERATIONAL;
-        }
+    }
+    else {
+        status = FacilityStatus::UNDER_CONSTRUCTIONS;
     }
     return status;
 }

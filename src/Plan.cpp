@@ -3,17 +3,17 @@
 using std::vector;
 
 Plan::Plan(int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, 
-           const std::vector<FacilityType> &facilityOptions)
+           const vector<FacilityType> &facilityOptions)
     : plan_id(planId), settlement(settlement), selectionPolicy(selectionPolicy),
-      facilityOptions(facilityOptions), status(PlanStatus::AVALIABLE),
-      life_quality_score(0), economy_score(0), environment_score(0) {
-    
-}
+      status(PlanStatus::AVALIABLE), facilities(), underConstruction(), facilityOptions(facilityOptions),
+      life_quality_score(0), economy_score(0), environment_score(0) {}
 
+    
 Plan::Plan(const Plan& other)
     : plan_id(other.plan_id), settlement(other.settlement), 
-      selectionPolicy(other.selectionPolicy), facilityOptions(other.facilityOptions),
-      status(other.status), life_quality_score(other.life_quality_score),
+      selectionPolicy(other.selectionPolicy), status(other.status), facilities(),
+      underConstruction(), facilityOptions(other.facilityOptions),
+      life_quality_score(other.life_quality_score),
       economy_score(other.economy_score), environment_score(other.environment_score) {
     
     for (Facility* facility : other.facilities) {
@@ -180,41 +180,44 @@ void Plan::printStatus() {
 }
 
 void Plan::step() {
-    if (status == PlanStatus::BUSY) {
-        updateUnderConstruction();
-        return;
-    }
-
-    int constructionLimit = settlement.getConstructionLimit();
-    while (underConstruction.size() < constructionLimit) {
-        const FacilityType* nextFacilityType = &selectionPolicy->selectFacility(facilityOptions);       
-        if (nextFacilityType == nullptr) {
-            break;
+    size_t constructionLimit = settlement.getConstructionLimit();
+    if(status == PlanStatus::AVALIABLE){
+        while (underConstruction.size() < constructionLimit) {
+            addNewToConstruction();
         }
-        Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
-        addFacility(newFacility); 
     }
-    updateUnderConstruction();
-    if (underConstruction.size() < settlement.getConstructionLimit()) {
+   
+    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
+    Facility* facility = *it;
+
+    if (facility != nullptr) {
+        facility->step();  // קריאה לפונקציה step() עבור כל Facility
+
+        // בדיקה אם המתקן הפך ל-OPERATIONAL
+        if (facility->getStatus() == FacilityStatus::OPERATIONAL) {
+            addFacility(facility); 
+            it = underConstruction.erase(it);  // מחק מ-underConstruction ועבור לאיבר הבא
+            continue;  // דלג על ההגדלה של it במקרה של מחיקה
+        }
+    }
+    ++it;  // עבור לאיבר הבא
+    }
+    if (underConstruction.size() < constructionLimit) {
         status = PlanStatus::AVALIABLE;
-    } else {
+    }
+    else{
         status = PlanStatus::BUSY;
     }
 }
 
-void Plan::updateUnderConstruction() {
-    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
-        Facility* facility = *it;
-        FacilityStatus status = facility->step(); 
 
-        if (status == FacilityStatus::OPERATIONAL) {
-            facilities.push_back(facility); 
-            it = underConstruction.erase(it); 
-        } else {
-            ++it; 
+void Plan::addNewToConstruction(){
+    const FacilityType* nextFacilityType = &selectionPolicy->selectFacility(facilityOptions);       
+        if (nextFacilityType != nullptr) {
+            Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
+            addFacility(newFacility); 
         }
     }
-}
 
 void Plan::setSelectionPolicy(SelectionPolicy* newPolicy) {
     if (selectionPolicy != nullptr) {
