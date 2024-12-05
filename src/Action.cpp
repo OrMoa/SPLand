@@ -88,6 +88,7 @@ void AddPlan::act(Simulation &simulation) {
     } else if (selectionPolicy == "env") {
         policy = new SustainabilitySelection();
     }else{
+        delete policy;
         error("Cannot create this plan");
         return;
     }
@@ -135,16 +136,13 @@ AddFacility::AddFacility(const string &facilityName, const FacilityCategory faci
       environmentScore(environmentScore) {}
 
 void AddFacility::act(Simulation &simulation) {
-    FacilityType *newFacility = new FacilityType(facilityName, facilityCategory, price, lifeQualityScore, economyScore, environmentScore);
+    FacilityType newFacility(facilityName, facilityCategory, price, lifeQualityScore, economyScore, environmentScore);
 
-    if (!simulation.addFacility(*newFacility)) {
-        delete newFacility;
+    if (!simulation.addFacility(newFacility)) {
         error("Facility already exists: " + facilityName);
         return;
     }
-    else {
-        complete();
-    }
+    complete();
 }
 
 const string AddFacility::toString() const {
@@ -230,7 +228,6 @@ void RestoreSimulation::act(Simulation &simulation) {
         error("No backup AVALIABLE");
         return;
     }
-    simulation.clearToRestore();
     simulation.restoreFromBackup();
     complete();
 }

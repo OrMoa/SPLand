@@ -11,29 +11,36 @@ Plan::Plan(int planId, const Settlement &settlement, SelectionPolicy *selectionP
     
     
 Plan::Plan(const Plan& other)
-    : plan_id(other.plan_id), settlement(other.settlement), 
-      selectionPolicy(other.selectionPolicy), status(other.status), facilities(),
-      underConstruction(), facilityOptions(other.facilityOptions),
+    : plan_id(other.plan_id),
+      settlement(other.settlement),
+      selectionPolicy(nullptr),
+      status(other.status),
+      facilities(), // אתחול רשימת המתקנים
+      underConstruction(), // אתחול מתקנים בבנייה
+      facilityOptions(other.facilityOptions),
       life_quality_score(other.life_quality_score),
-      economy_score(other.economy_score), environment_score(other.environment_score) {
+      economy_score(other.economy_score),
+      environment_score(other.environment_score){
     
-    for (Facility* facility : other.facilities) {
-        facilities.push_back(new Facility(*facility));
+    // העתקה עמוקה של SelectionPolicy
+    if (other.selectionPolicy != nullptr) {
+        selectionPolicy = other.selectionPolicy->clone(); // assuming clone is implemented
     }
 
+    // העתקה עמוקה של facilities
+    for (Facility* facility : other.facilities) {
+        facilities.push_back(new Facility(*facility)); // יצירת עותק של כל מתקן
+    }
+
+    // העתקה עמוקה של underConstruction
     for (Facility* facility : other.underConstruction) {
-        underConstruction.push_back(new Facility(*facility));
+        underConstruction.push_back(new Facility(*facility)); // יצירת עותק של כל מתקן
     }
 }
 
 //Destructor
-/*Plan::~Plan() {
-    // מחיקת selectionPolicy אם הוא מאותחל
-    if (selectionPolicy != nullptr) {
-        delete selectionPolicy;
-        selectionPolicy = nullptr; // איפוס למניעת גישה כפולה
-    }
-
+Plan::~Plan() {
+    
     // מחיקת מתקנים מ-facilities
     for (Facility* facility : facilities) {
         if (facility != nullptr) {
@@ -48,8 +55,13 @@ Plan::Plan(const Plan& other)
             delete facility;
         }
     }
-    underConstruction.clear(); // ניקוי הווקטור
-}*/
+    underConstruction.clear();
+    
+    if (selectionPolicy != nullptr) {
+        delete selectionPolicy;
+        selectionPolicy = nullptr; // איפוס למניעת גישה כפולה
+    }
+}
 
 Plan& Plan::operator=(const Plan& other) {
 
@@ -93,6 +105,16 @@ Plan& Plan::operator=(const Plan& other) {
     return *this;
 }
 
+/*Plan& Plan::operator=(const Plan& other) {
+    if (this != &other) {
+        if (selectionPolicy != nullptr) {
+            delete selectionPolicy;
+        }
+        selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
+        // העתקת שאר האובייקטים
+    }
+    return *this;
+}*/
 
 const vector<Facility*>& Plan::getFacilities() const {
     return facilities;
@@ -181,41 +203,43 @@ void Plan::printStatus() {
 }
 
 void Plan::step() {
-    if (status == PlanStatus::BUSY) {
-        updateUnderConstruction();
-        return;
-    }
-
     size_t constructionLimit = settlement.getConstructionLimit();
-    while (underConstruction.size() < constructionLimit) {
-        const FacilityType* nextFacilityType = &selectionPolicy->selectFacility(facilityOptions);       
-        if (nextFacilityType == nullptr) {
-            break;
+    if(status == PlanStatus::AVALIABLE){
+        while (underConstruction.size() < constructionLimit) {
+            addNewToConstruction();
         }
-        Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
-        addFacility(newFacility); 
     }
-    updateUnderConstruction();
+   
+    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
+    Facility* facility = *it;
+
+    if (facility != nullptr) {
+        facility->step();  // קריאה לפונקציה step() עבור כל Facility
+
+        // בדיקה אם המתקן הפך ל-OPERATIONAL
+        if (facility->getStatus() == FacilityStatus::OPERATIONAL) {
+            addFacility(facility); 
+            it = underConstruction.erase(it);  // מחק מ-underConstruction ועבור לאיבר הבא
+            continue;  // דלג על ההגדלה של it במקרה של מחיקה
+        }
+    }
+    ++it;  // עבור לאיבר הבא
+    }
     if (underConstruction.size() < constructionLimit) {
         status = PlanStatus::AVALIABLE;
-    } else {
+    }
+    else{
         status = PlanStatus::BUSY;
     }
 }
 
-void Plan::updateUnderConstruction() {
-    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
-        Facility* facility = *it;
-        FacilityStatus status = facility->step(); 
-
-        if (status == FacilityStatus::OPERATIONAL) {
-            facilities.push_back(facility); 
-            it = underConstruction.erase(it); 
-        } else {
-            ++it; 
+void Plan::addNewToConstruction(){
+    const FacilityType* nextFacilityType = &selectionPolicy->selectFacility(facilityOptions);       
+        if (nextFacilityType != nullptr) {
+            Facility* newFacility = new Facility(*nextFacilityType, settlement.getName());
+            addFacility(newFacility); 
         }
     }
-}
 
 void Plan::setSelectionPolicy(SelectionPolicy* newPolicy) {
     if (selectionPolicy != nullptr) {

@@ -39,69 +39,81 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false),
     
 }
 
-Simulation::Simulation(const Simulation& other) 
-    : isRunning(other.isRunning), planCounter(other.planCounter), 
-      actionsLog(other.actionsLog), plans(other.plans), 
-      settlements(other.settlements), facilitiesOptions(other.facilitiesOptions)
+Simulation::Simulation(const Simulation &other)
+    : isRunning(other.isRunning),
+      planCounter(other.planCounter),
+      actionsLog(),
+      plans(other.plans),
+      settlements(),
+      facilitiesOptions(other.facilitiesOptions)
+      
 {
-    for (Settlement* settlement : other.settlements) {
-        settlements.push_back(new Settlement(*settlement));
-    }
-
-    for (const Plan& plan : other.plans) {
-        plans.push_back(plan); 
-    }
-
     for (BaseAction* action : other.actionsLog) {
-        actionsLog.push_back(action->clone()); 
+        actionsLog.push_back(action->clone());  //using BaseAction clone() method
+    }
+
+    for (Settlement* settlement : other.settlements) {
+        settlements.push_back(new Settlement(*settlement)); //using Settlement has a copy constructor
     }
 }
 
-void Simulation::clearToClose() {
+Simulation::~Simulation(){
     for (Settlement* settlement : settlements) {
         delete settlement;
     }
-    settlements.clear(); 
+    settlements.clear();
 
-    for (Plan& plan : plans) {
-        delete plan.getSelectionPolicy(); 
-    }
-    plans.clear(); 
-
-    // שחרור האובייקטים בתוך actionsLog
     for (BaseAction* action : actionsLog) {
-        delete action;
+        delete action; // שחרור אובייקט הפעולה
     }
-    actionsLog.clear(); // ניקוי הווקטור
+    actionsLog.clear(); // ניקוי וקטור הפעולות
 
-    // אין צורך למחוק את facilitiesOptions כי הוא וקטור של אובייקטים רגילים
-    facilitiesOptions.clear(); // פשוט מנקים את הווקטור
-
-    // אם backup קיים, שחרר אותו
-    if (backup != nullptr) {
-        delete backup;
-        backup = nullptr; // איפוס כדי למנוע גישה כפולה
-    }
 }
+
+Simulation& Simulation::operator=(const Simulation &other) {
+    if (this != &other) {
+        // Clear and copy actionsLog
+       /*for (BaseAction* action : actionsLog) {
+            delete action;
+        }
+        actionsLog.clear();
+
+        for (BaseAction* action : other.actionsLog) {
+            actionsLog.push_back(action->clone()); // using BaseAction clone() method
+        }*/
+
+        // Clear and copy settlements
+        for (Settlement* settlement : settlements) {
+            delete settlement;
+        }
+        settlements.clear();
+
+        for (Settlement* settlement : other.settlements) {
+            settlements.push_back(new Settlement(*settlement));
+        }
+
+        // Copy primitive fields
+        isRunning = other.isRunning;
+
+        planCounter = other.planCounter;
+
+        // Copy facilitiesOptions
+        facilitiesOptions = other.facilitiesOptions;
+        plans.clear();
+
+        for (const Plan& plan : other.plans) {
+            plans.push_back(Plan(plan));
+        }
+    }
+    return *this;
+}
+
 
 void Simulation::clearToRestore() {
-    // שחרור האובייקטים בתוך settlements
-    for (Settlement* settlement : settlements) {
-        delete settlement;
+    for (BaseAction* action : actionsLog) {
+        delete action; // שחרור זיכרון עבור כל פעולה
     }
-    settlements.clear(); // ניקוי הווקטור
-
-    // אין צורך לשחרר את plans באופן ידני, כיוון שזהו וקטור של אובייקטים רגילים
-    plans.clear(); // פשוט מנקים את הווקטור
-
-    // אין צורך למחוק את facilitiesOptions כי הוא וקטור של אובייקטים רגילים
-    facilitiesOptions.clear(); // פשוט מנקים את הווקטור
-
-    // אם backup קיים, שחרר אותו
-    if (backup != nullptr) {
-        delete backup;
-        backup = nullptr; // איפוס כדי למנוע גישה כפולה
-    }
+    actionsLog.clear(); // ניקוי הרשימה
 }
 
 void Simulation::open(){
@@ -243,17 +255,28 @@ void Simulation::processCommand(const vector<string>& args){
     }else if (command == "close"){
         action = new Close();
     }
-    if (action != nullptr && command != "log") {
+    /*if (action != nullptr && command != "log") {
         addAction(action);
         action->act(*this);
     } else if (action != nullptr && command == "log") {
         action->act(*this);
         addAction(action);
+    }*/
+   if(action != nullptr){
+    if (command == "log"){
+        action->act(*this);
+        addAction(action);
+        
     }
+    else{
+        addAction(action); 
+        action->act(*this);   
+    }
+   }
 }
 
 void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy){
-    plans.push_back(*new Plan(planCounter++, settlement, selectionPolicy, facilitiesOptions));
+    plans.emplace_back(planCounter++, settlement, selectionPolicy, facilitiesOptions);
 }
 
 bool Simulation::addSettlement(Settlement* settlement) {
@@ -299,8 +322,6 @@ void Simulation::close() {
     for (Plan& plan : plans) { 
         plan.closePrint();
     }
-
-    clearToClose();
     isRunning = false;
 }
 
@@ -336,15 +357,8 @@ Plan& Simulation::getPlan(const int planID) {
 }
 
 void Simulation::restoreFromBackup() {
-
-    // העתקת ה-settlements מה-backup
-    for (const Settlement* settlement : backup->settlements) {
-        settlements.push_back(new Settlement(*settlement)); // העתקה עמוקה
+    if (backup != nullptr) {
+        //clearToRestore();  // שחרור כל המשאבים של האובייקט הנוכחי
+        *this = *backup;   // שיבוץ מחדש מהגיבוי
     }
-
-    // העתקת ה-plans
-    plans = backup->plans; // העתקה ישירה (תלויה בתמיכה ב-Rule of 5)
-
-    // העתקת ה-facilitiesOptions
-    facilitiesOptions = backup->facilitiesOptions; // העתקה פשוטה
 }
