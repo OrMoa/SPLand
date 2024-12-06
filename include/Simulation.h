@@ -13,9 +13,13 @@ class SelectionPolicy;
 class Simulation {
     public:
         Simulation(const string &configFilePath);
+        //Rule Of 5:
         Simulation(const Simulation& other);
         ~Simulation();
         Simulation& operator=(const Simulation &other);
+        Simulation(Simulation&& other) = default;
+        Simulation& operator=(Simulation&& other) = default; 
+        
         void start();
         void addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy);
         void addAction(BaseAction *action);
@@ -30,12 +34,10 @@ class Simulation {
         void open();
         void processCommand(const vector<string>& args);
         int getPlanCounter() const;
-        void clearToClose();
-        void clearToRestore();
         void restoreFromBackup();
-        Settlement& getSettlement(const string& name) const;
-        //void clearActionsLog();
         void printActionsLog() const;
+        Settlement& findingNewSettlement(const string& name);
+
         
         
 

@@ -43,7 +43,7 @@ Simulation::Simulation(const Simulation &other)
     : isRunning(other.isRunning),
       planCounter(other.planCounter),
       actionsLog(),
-      plans(other.plans),
+      plans(),
       settlements(),
       facilitiesOptions(other.facilitiesOptions)
       
@@ -54,6 +54,14 @@ Simulation::Simulation(const Simulation &other)
 
     for (Settlement* settlement : other.settlements) {
         settlements.push_back(new Settlement(*settlement)); //using Settlement has a copy constructor
+    }
+
+    for (const Plan& plan : other.plans) {
+        const string settlementName = plan.getSettlementName();
+        Settlement& newSettlement = findingNewSettlement(settlementName);
+
+    // Create a new plan with the updated settlement reference
+        plans.push_back(Plan(plan, newSettlement));
     }
 }
 
@@ -72,17 +80,16 @@ Simulation::~Simulation(){
 
 Simulation& Simulation::operator=(const Simulation &other) {
     if (this != &other) {
-        // Clear and copy actionsLog
-       /*for (BaseAction* action : actionsLog) {
+
+       for (BaseAction* action : actionsLog) {
             delete action;
         }
         actionsLog.clear();
 
         for (BaseAction* action : other.actionsLog) {
             actionsLog.push_back(action->clone()); // using BaseAction clone() method
-        }*/
+        }
 
-        // Clear and copy settlements
         for (Settlement* settlement : settlements) {
             delete settlement;
         }
@@ -92,31 +99,25 @@ Simulation& Simulation::operator=(const Simulation &other) {
             settlements.push_back(new Settlement(*settlement));
         }
 
-        // Copy primitive fields
         isRunning = other.isRunning;
 
         planCounter = other.planCounter;
 
-        // Copy facilitiesOptions
         facilitiesOptions = other.facilitiesOptions;
         plans.clear();
 
-        /*for (const Plan& plan : other.plans) {
-            plans.push_back(Plan(plan));
-        }*/
-       for (const Plan& plan : other.plans) {
-            plans.push_back(Plan(plan, plan.getSettlement()));
-    }
+        vector<Plan> tempPlans; // temp vector
+        for (const Plan& plan : other.plans) {
+            const std::string settlementName = plan.getSettlementName();
+            Settlement& matchingSettlement = findingNewSettlement(settlementName);
+            tempPlans.push_back(Plan(plan, matchingSettlement)); // הוספת תוכנית לוקטור הזמני
+        }
+        plans.clear();
+
+        plans = move(tempPlans); // השתמשי ב-std::move לשיפור ביצועים
+
     }
     return *this;
-}
-
-
-void Simulation::clearToRestore() {
-    for (BaseAction* action : actionsLog) {
-        delete action; // שחרור זיכרון עבור כל פעולה
-    }
-    actionsLog.clear(); // ניקוי הרשימה
 }
 
 void Simulation::open(){
@@ -240,41 +241,43 @@ void Simulation::processCommand(const vector<string>& args){
                                  environmentScore);
 
 
-    }else if (command == "backup") {
+    }
+    //backup:
+    else if (command == "backup") {
         action = new BackupSimulation();
-    } else if (command == "restore") {
+    } 
+    else if (command == "restore") {
         action = new RestoreSimulation();
-    } else if (command == "log"){
+    } 
+    else if (command == "log"){
         action = new PrintActionsLog();
-    }else if (command == "planStatus") {
+    }
+    else if (command == "planStatus") {
         int planId;
         planId = stoi(args[1]);
         action = new PrintPlanStatus(planId);
-    } else if (command == "changePolicy") {
+    }
+    //changePolicy
+    else if (command == "changePolicy") {
         int planId;
         planId = stoi(args[1]);
         const string& selectionPolicy = args[2];
         action = new ChangePlanPolicy(planId, selectionPolicy);
-    }else if (command == "close"){
+    }
+    //close
+    else if (command == "close"){
         action = new Close();
     }
-    /*if (action != nullptr && command != "log") {
-        addAction(action);
-        action->act(*this);
-    } else if (action != nullptr && command == "log") {
-        action->act(*this);
-        addAction(action);
-    }*/
-   if(action != nullptr){
-    if (command == "log"){
-        action->act(*this);
-        addAction(action);
-        
-    }
-    else{
-        addAction(action); 
-        action->act(*this);   
-    }
+    if(action != nullptr){
+
+        if (command == "log" || command == "restore"){
+            action->act(*this);
+            addAction(action);          
+        }
+        else{
+            addAction(action); 
+            action->act(*this);   
+        }
    }
 }
 
@@ -317,12 +320,14 @@ bool Simulation::isFacilityExists(const string &facilityName) {
     return false; 
 }  
 
-Settlement& Simulation::getSettlement(const string& name) const {
+Settlement& Simulation::getSettlement(const string &name){
     for (Settlement* settlement : settlements) {
         if (settlement->getName() == name) {
             return *settlement; 
         }
     }
+    throw std::runtime_error("Settlement not found: " + name); // זריקת חריגה במקרה שלא נמצא
+
 }
 
 int Simulation::getPlanCounter() const{
@@ -346,17 +351,6 @@ void Simulation::addAction(BaseAction *action){
     actionsLog.push_back(action);
 }
 
-Settlement& Simulation::getSettlement(const string& settlementName) {
-    Settlement* result = nullptr; 
-    for (Settlement* settlement : settlements) {
-        if (settlement->getName() == settlementName) {
-            result = settlement;  
-            break;  
-        }
-    }
-    return *result; 
-}
-
 void Simulation::step() {
     for (Plan& plan : plans) {
         plan.step();  
@@ -369,6 +363,15 @@ Plan& Simulation::getPlan(const int planID) {
 
 void Simulation::restoreFromBackup() {
     if (backup != nullptr) {
-        *this = *backup;   // שיבוץ מחדש מהגיבוי
+        *this = *backup;  
     }
+}
+
+Settlement& Simulation::findingNewSettlement(const string& name) {
+    for (Settlement* settlement : settlements) {
+        if (settlement->getName() == name) {
+            return *settlement;
+        }
+    }
+    throw runtime_error("Settlement with name '" + name + "' not found in the new settlements vector.");
 }

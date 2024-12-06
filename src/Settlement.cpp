@@ -7,11 +7,11 @@ const string &Settlement::getName() const {
     return name;
 }
 
+
 SettlementType Settlement::getType() const {
     return type;
 }
 
-// Return a string representation of the settlement
 const string Settlement::toString() const {
     string typeString;
     switch (type) {

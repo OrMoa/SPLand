@@ -1,8 +1,11 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <stdexcept>
 using std::string;
 using std::vector;
+using namespace std;
+
 
 class Facility;
 

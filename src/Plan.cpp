@@ -153,13 +153,13 @@ const int Plan::getEconomyScore() const {
     return economy_score;
 }
 
-const Settlement& Plan::getSettlement() const {
-    return settlement;
+const string Plan::getSettlementName() const {
+    return settlement.getName();
 }
 
-const vector<Facility*>& Plan::getUnderConstruction() const {
+/* אני const vector<Facility*>& Plan::getUnderConstruction() const {
     return underConstruction;
-}
+}*/
 
 const int Plan::getEnvironmentScore() const {
     return environment_score;

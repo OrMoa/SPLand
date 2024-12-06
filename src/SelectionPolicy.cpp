@@ -15,11 +15,11 @@ const FacilityType& NaiveSelection::selectFacility(const std::vector<FacilityTyp
 }
 
 const string NaiveSelection::toString() const {
-    return "Naive Selection";
+    return "nve";
 }
 
 NaiveSelection* NaiveSelection::clone() const {
-    return new NaiveSelection(*this); // יצירת עותק באמצעות בנאי ההעתקה
+    return new NaiveSelection(*this); 
 }
  
  
@@ -53,7 +53,7 @@ const FacilityType& BalancedSelection::selectFacility(const std::vector<Facility
 }
 
 const string BalancedSelection::toString() const {
-    return "Balanced Selection";
+    return "bal";
 }
 
 BalancedSelection* BalancedSelection::clone() const {
@@ -64,7 +64,7 @@ EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
 
 const FacilityType& EconomySelection::selectFacility(const std::vector<FacilityType>& facilitiesOptions) {
     
-    static FacilityType nullFacility("null", FacilityCategory::LIFE_QUALITY, 0, 0, 0, 0); // יצירת מתקן "null"
+    static FacilityType nullFacility("null", FacilityCategory::LIFE_QUALITY, 0, 0, 0, 0); 
     size_t startIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
     for (size_t i = 0; i < facilitiesOptions.size(); ++i) {
         size_t currentIndex = (startIndex + i) % facilitiesOptions.size();
@@ -77,7 +77,7 @@ const FacilityType& EconomySelection::selectFacility(const std::vector<FacilityT
 }
 
 const string EconomySelection::toString() const {
-    return "Economy Selection";
+    return "eco";
 }
 
 EconomySelection* EconomySelection::clone() const {
@@ -103,7 +103,7 @@ const FacilityType& SustainabilitySelection::selectFacility(const std::vector<Fa
 }
 
 const string SustainabilitySelection::toString() const {
-    return "Sustainability Selection";
+    return "env";
 }
 
 SustainabilitySelection* SustainabilitySelection::clone() const {
