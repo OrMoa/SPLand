@@ -38,6 +38,31 @@ Plan::Plan(const Plan& other)
     }
 }
 
+Plan::Plan(const Plan& other, const Settlement& newSettlement)
+    : plan_id(other.plan_id),
+      settlement(newSettlement), // שימוש במופע Settlement החדש
+      selectionPolicy(nullptr),
+      status(other.status),
+      facilities(), // אתחול רשימת המתקנים
+      underConstruction(), // השארת underConstruction ריק
+      facilityOptions(other.facilityOptions),
+      life_quality_score(other.life_quality_score),
+      economy_score(other.economy_score),
+      environment_score(other.environment_score) {
+
+    // העתקה עמוקה של SelectionPolicy
+    if (other.selectionPolicy != nullptr) {
+        selectionPolicy = other.selectionPolicy->clone();
+    }
+
+    // העתקה עמוקה של facilities בלבד
+    for (Facility* facility : other.facilities) {
+        facilities.push_back(new Facility(*facility));
+    }
+
+    // underConstruction יישאר ריק בבנאי הזה
+}
+
 //Destructor
 Plan::~Plan() {
     
@@ -128,7 +153,7 @@ const int Plan::getEconomyScore() const {
     return economy_score;
 }
 
-const Settlement Plan::getSettlement(){
+const Settlement& Plan::getSettlement() const {
     return settlement;
 }
 

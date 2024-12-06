@@ -28,6 +28,7 @@ const string Settlement::toString() const {
     return "Settlement " + name + typeString;
 }
 
+
 int Settlement::getConstructionLimit() const {
     if (type == SettlementType::VILLAGE) {
         return 1; 

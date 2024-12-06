@@ -33,6 +33,7 @@ class Simulation {
         void clearToClose();
         void clearToRestore();
         void restoreFromBackup();
+        Settlement& getSettlement(const string& name) const;
         //void clearActionsLog();
         void printActionsLog() const;
         

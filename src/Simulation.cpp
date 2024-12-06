@@ -101,9 +101,12 @@ Simulation& Simulation::operator=(const Simulation &other) {
         facilitiesOptions = other.facilitiesOptions;
         plans.clear();
 
-        for (const Plan& plan : other.plans) {
+        /*for (const Plan& plan : other.plans) {
             plans.push_back(Plan(plan));
-        }
+        }*/
+       for (const Plan& plan : other.plans) {
+            plans.push_back(Plan(plan, plan.getSettlement()));
+    }
     }
     return *this;
 }
@@ -314,6 +317,14 @@ bool Simulation::isFacilityExists(const string &facilityName) {
     return false; 
 }  
 
+Settlement& Simulation::getSettlement(const string& name) const {
+    for (Settlement* settlement : settlements) {
+        if (settlement->getName() == name) {
+            return *settlement; 
+        }
+    }
+}
+
 int Simulation::getPlanCounter() const{
     return planCounter;
 }
@@ -358,7 +369,6 @@ Plan& Simulation::getPlan(const int planID) {
 
 void Simulation::restoreFromBackup() {
     if (backup != nullptr) {
-        //clearToRestore();  // שחרור כל המשאבים של האובייקט הנוכחי
         *this = *backup;   // שיבוץ מחדש מהגיבוי
     }
 }
